@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Sora", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+:root {
+  --bg-main: #0E0A14;
+  --bg-surface: #171122;
+  --bg-card: #1F1830;
+  --border-color: #2C2340;
+  --text-main: #F5F1FF;
+  --text-muted: #A79FC0;
+  --coral: #FF4D6D;
+  --amber: #FF9F1C;
+  --violet: #8B5CFF;
+}
+
+html.light {
+  --bg-main: #FAF7FF;
+  --bg-surface: #FFFFFF;
+  --bg-card: #F3EEFC;
+  --border-color: #E2D9F3;
+  --text-main: #1A1429;
+  --text-muted: #6E6288;
+}
+
+/* Base typography */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Sora', sans-serif;
+}
+
+.font-heading {
+  font-family: 'Sora', sans-serif;
+}
+
+.font-mono-meta {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom modern thin scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2C2340;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FF4D6D;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #D5C8EC;
+}
+
+/* Hide scrollbar for slider track while preserving scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphism helpers */
+.glass-nav {
+  background: rgba(14, 10, 20, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(44, 35, 64, 0.8);
+}
+
+html.light .glass-nav {
+  background: rgba(250, 247, 255, 0.88);
+  border-bottom: 1px solid rgba(226, 217, 243, 0.9);
+}
+
+.glass-card {
+  background: rgba(31, 24, 48, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(44, 35, 64, 0.8);
+}
+
+html.light .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 217, 243, 0.9);
+}
+
+/* Brand gradient buttons & accents */
+.bg-gradient-brand {
+  background: linear-gradient(135deg, #FF4D6D 0%, #FF9F1C 100%);
+}
+
+.bg-gradient-brand-subtle {
+  background: linear-gradient(135deg, rgba(255, 77, 109, 0.15) 0%, rgba(255, 159, 28, 0.15) 100%);
+}
+
+.text-gradient-brand {
+  background: linear-gradient(135deg, #FF4D6D 0%, #FF9F1C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-gradient-brand {
+  border-image: linear-gradient(135deg, #FF4D6D, #FF9F1C) 1;
+}
+
+/* Reader true black mode */
+.reader-pure-black {
+  background-color: #000000 !important;
+  color: #D4D0DB !important;
+}
+

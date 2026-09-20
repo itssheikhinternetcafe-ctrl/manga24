@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="mangaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF4D6D"/>
+      <stop offset="100%" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1F1830"/>
+      <stop offset="100%" stop-color="#0E0A14"/>
+    </linearGradient>
+    <linearGradient id="violetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CFF"/>
+      <stop offset="100%" stop-color="#FF4D6D"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <!-- Manga speech bubble / page fold accent -->
+  <path d="M120 160C120 137.909 137.909 120 160 120H352C374.091 120 392 137.909 392 160V310C392 332.091 374.091 350 352 350H230L160 395V350H160C137.909 350 120 332.091 120 310V160Z" fill="url(#mangaGrad)"/>
+  <!-- Action lines inside bubble -->
+  <path d="M165 190L347 190M165 235L300 235M165 280L320 280" stroke="#0E0A14" stroke-width="18" stroke-linecap="round"/>
+  <!-- Dynamic 24 badge -->
+  <circle cx="360" cy="345" r="70" fill="#0E0A14" stroke="url(#violetGrad)" stroke-width="12"/>
+  <text x="360" y="362" font-family="'Sora', sans-serif" font-weight="900" font-size="52" fill="#F5F1FF" text-anchor="middle">24</text>
+  <!-- Speed lines accent top right -->
+  <path d="M375 90L430 75M395 110L445 100M360 70L405 45" stroke="#FF9F1C" stroke-width="8" stroke-linecap="round"/>
+</svg>

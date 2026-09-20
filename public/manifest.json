@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Manga24 - Manga & Webtoon Reader",
+  "short_name": "Manga24",
+  "description": "Read fast. Read free. Read 24/7. Discover original manga, manhwa, and webtoons with immersive reader modes.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0E0A14",
+  "theme_color": "#0E0A14",
+  "orientation": "any",
+  "categories": ["books", "entertainment", "comics"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

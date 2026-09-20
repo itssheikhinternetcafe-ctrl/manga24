@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>Manga24 – Read Fast. Read Free. Read 24/7.</title>
+    <meta name="description" content="Discover thousands of original manga, manhwa, manhua, and webtoons on Manga24.xyz. High-speed reading, dark reader mode, personalized bookmarks, and active community." />
+    <meta property="og:title" content="Manga24 – Read Fast. Read Free. Read 24/7." />
+    <meta property="og:description" content="Discover thousands of original manga, manhwa, manhua, and webtoons on Manga24.xyz. Fast, free, 24/7 reading experience." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Manga24" />
+    <meta property="og:url" content="https://manga24.xyz" />
+    <meta property="og:image" content="/icon.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Manga24 – Read Fast. Read Free. Read 24/7." />
+    <meta name="twitter:description" content="Discover thousands of original manga, manhwa, and webtoons with immersive reader modes." />
+    <meta name="twitter:image" content="/icon.svg" />
+    <meta name="theme-color" content="#0E0A14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Manga24" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Google Fonts: Sora (headings), Inter (body), JetBrains Mono (meta/code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Schema.org WebApplication structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Manga24",
+      "url": "https://manga24.xyz",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "All",
+      "description": "Read fast, free, and 24/7. Explore thousands of original manga, manhwa, manhua, and webtoons.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+  </head>
+  <body class="bg-[#0E0A14] text-[#F5F1FF] font-sans antialiased selection:bg-[#FF4D6D]/30 selection:text-[#FF9F1C] min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
+

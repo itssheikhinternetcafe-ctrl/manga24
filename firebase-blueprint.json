@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "Series": {
+      "title": "Series",
+      "description": "Represents a published manga, manhwa, manhua, webtoon, or novel series.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "altTitles": { "type": "array", "items": { "type": "string" } },
+        "slug": { "type": "string" },
+        "synopsis": { "type": "string" },
+        "type": { "type": "string", "enum": ["Manga", "Manhwa", "Manhua", "Webtoon", "Novel"] },
+        "genres": { "type": "array", "items": { "type": "string" } },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["Ongoing", "Completed", "Hiatus"] },
+        "contentRating": { "type": "string", "enum": ["Safe", "Suggestive", "Mature"] },
+        "coverUrl": { "type": "string" },
+        "bannerUrl": { "type": "string" },
+        "author": { "type": "string" },
+        "artist": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "isDraft": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "views": { "type": "number" },
+        "followersCount": { "type": "number" },
+        "rating": { "type": "number" },
+        "ratingCount": { "type": "number" },
+        "creatorId": { "type": "string" }
+      },
+      "required": ["id", "title", "slug", "type", "status", "coverUrl"]
+    },
+    "Chapter": {
+      "title": "Chapter",
+      "description": "Represents an individual chapter for a series containing image pages or novel text.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "seriesId": { "type": "string" },
+        "number": { "type": "number" },
+        "title": { "type": "string" },
+        "pages": { "type": "array", "items": { "type": "string" } },
+        "textContent": { "type": "string" },
+        "publishedAt": { "type": "string" },
+        "views": { "type": "number" },
+        "isDraft": { "type": "boolean" },
+        "scheduledAt": { "type": "string" }
+      },
+      "required": ["id", "seriesId", "number", "title"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User account profile with permissions and roles.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "creator", "reader", "VIP"] },
+        "isBanned": { "type": "boolean" },
+        "bio": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "User comments on series, chapters, or community posts.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "seriesId": { "type": "string" },
+        "chapterId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "likes": { "type": "number" },
+        "isSpoiler": { "type": "boolean" }
+      },
+      "required": ["id", "authorId", "authorName", "content"]
+    }
+  }
+}

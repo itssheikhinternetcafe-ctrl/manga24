@@ -1,0 +1,6 @@
+{
+  "name": "Manga24",
+  "description": "Read fast, free, and 24/7. Explore thousands of original manga, manhwa, manhua, and webtoons with modern reader modes, personalized library, and community.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
