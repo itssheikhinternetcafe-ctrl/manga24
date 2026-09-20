@@ -206,7 +206,7 @@ export const CreatorUploadPage: React.FC = () => {
               <span className="text-xs font-bold text-[#8B5CFF]">
                 {uploadingCover ? 'Uploading...' : 'Upload Original Cover File'}
               </span>
-              <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleCoverUpload} className="hidden" />
             </label>
           </div>
 

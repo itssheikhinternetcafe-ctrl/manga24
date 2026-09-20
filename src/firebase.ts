@@ -7,7 +7,8 @@
  * 1. Create a Firebase project at https://console.firebase.google.com/
  * 2. Enable "Authentication" -> Sign-in methods -> Enable "Email/Password" and "Google".
  * 3. Enable "Cloud Firestore" (Start in production mode or test mode).
- * 4. Enable "Cloud Storage" (for cover images and chapter page uploads).
+ * 4. Configure Cloudinary for image uploads using VITE_CLOUDINARY_CLOUD_NAME and
+ *    VITE_CLOUDINARY_UPLOAD_PRESET. Firebase Storage is not used for uploads.
  * 5. Go to Project Settings -> General -> "Your apps" -> Click the Web icon (</>).
  * 6. Copy your Firebase configuration credentials and EITHER:
  *    a) Paste them in your environment variables (.env file):
@@ -26,7 +27,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
 import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const cleanFirebaseEnvValue = (value: string | undefined): string | undefined => {
   const trimmed = value?.trim();
@@ -91,7 +91,6 @@ export function getFirebaseConfigError(): string {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
-let storage: FirebaseStorage | null = null;
 
 export function initFirebase() {
   if (isFirebaseConfigured() && !app) {
@@ -104,7 +103,6 @@ export function initFirebase() {
       } catch {
         db = getFirestore(app);
       }
-      storage = getStorage(app);
     } catch (error) {
       console.warn('[Firebase] Initialization deferred or fallback active:', error);
     }
@@ -116,68 +114,99 @@ initFirebase();
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-export { app, auth, db, storage, firebaseConfig };
+export { app, auth, db, firebaseConfig };
 
-/**
- * Upload helper that uploads a file to Firebase Storage if configured,
- * or safely falls back to a base64 DataURL for instant local/preview testing.
- */
+const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1';
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_IMAGE_WIDTH = 1200;
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
+const cleanCloudinaryEnvValue = (value: string | undefined): string | undefined => {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+  const quoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"));
+  return quoted ? trimmed.slice(1, -1).trim() || undefined : trimmed;
+};
+
+function getCloudinaryConfig(): { cloudName: string; uploadPreset: string } {
+  const cloudName = cleanCloudinaryEnvValue(import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
+  const uploadPreset = cleanCloudinaryEnvValue(import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+  if (!cloudName || !uploadPreset) {
+    throw new Error('Image upload is not configured. Add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in Vercel.');
+  }
+  return { cloudName, uploadPreset };
+}
+
+function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('The selected image could not be read.'));
+    };
+    image.src = objectUrl;
+  });
+}
+
+function convertToWebp(file: File): Promise<Blob> {
+  return loadImage(file).then(
+    (image) =>
+      new Promise((resolve, reject) => {
+        const scale = Math.min(1, MAX_IMAGE_WIDTH / image.naturalWidth);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('Your browser could not prepare the image.'));
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => (blob ? resolve(blob) : reject(new Error('The image could not be converted to WebP.'))),
+          'image/webp',
+          0.82
+        );
+      })
+  );
+}
+
 export async function uploadMediaFile(
   file: File,
-  folderPath: string = 'covers',
+  folderPath: string = 'manga24',
   onProgress?: (progress: number) => void
 ): Promise<string> {
-  // If Firebase Storage is active and configured
-  if (isFirebaseConfigured() && storage) {
-    try {
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const storagePath = `${folderPath}/${Date.now()}_${sanitizedName}`;
-      const storageRef = ref(storage, storagePath);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      return new Promise((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            if (onProgress) onProgress(Math.round(progress));
-          },
-          (error) => {
-            console.error('[Firebase Storage] Upload failed:', error);
-            reject(error);
-          },
-          async () => {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(downloadUrl);
-          }
-        );
-      });
-    } catch (err) {
-      console.warn('[Firebase Storage] Error uploading, falling back to data URL', err);
-    }
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    throw new Error('Please choose a JPEG, PNG, WebP, or GIF image.');
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error('Images must be 10 MB or smaller.');
   }
 
-  // Fallback when Firebase Storage is unavailable (it needs the Blaze plan):
-  // shrink the image and store it as a small data URL inside the Firestore document.
-  // Firestore documents are limited to 1MB, so covers are resized to max 600px wide JPEG.
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('Could not read image'));
-      img.onload = () => {
-        const maxW = 600;
-        const scale = Math.min(1, maxW / img.width);
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        if (onProgress) onProgress(100);
-        resolve(canvas.toDataURL('image/jpeg', 0.8));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
+  const { cloudName, uploadPreset } = getCloudinaryConfig();
+  onProgress?.(10);
+  const webpBlob = await convertToWebp(file);
+  onProgress?.(35);
+
+  const body = new FormData();
+  body.append('file', webpBlob, `${folderPath}-${Date.now()}.webp`);
+  body.append('upload_preset', uploadPreset);
+
+  const response = await fetch(`${CLOUDINARY_UPLOAD_URL}/${encodeURIComponent(cloudName)}/image/upload`, {
+    method: 'POST',
+    body,
   });
+  const result = (await response.json()) as { secure_url?: string; error?: { message?: string } };
+  if (!response.ok || !result.secure_url) {
+    throw new Error(result.error?.message || 'The image upload failed. Please try again.');
+  }
+  onProgress?.(100);
+  return result.secure_url;
 }

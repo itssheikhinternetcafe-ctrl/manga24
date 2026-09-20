@@ -102,6 +102,7 @@ export const AdminPage: React.FC = () => {
     scheduledAt: '',
   });
   const [uploadingPages, setUploadingPages] = useState(false);
+  const [pageUploadProgress, setPageUploadProgress] = useState('');
 
   // AI Studio State
   const [aiSubTab, setAiSubTab] = useState<'story' | 'world' | 'outline' | 'draft' | 'meta' | 'prompt'>('story');
@@ -342,10 +343,12 @@ export const AdminPage: React.FC = () => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setUploadingPages(true);
+    setPageUploadProgress('');
 
     try {
       const uploadedUrls: string[] = [];
       for (let i = 0; i < files.length; i++) {
+        setPageUploadProgress(`Uploading ${i + 1} of ${files.length}`);
         const url = await uploadMediaFile(files[i], 'chapters');
         uploadedUrls.push(url);
       }
@@ -358,6 +361,7 @@ export const AdminPage: React.FC = () => {
       showToast('Upload Failed', 'Error uploading pages.', 'error');
     } finally {
       setUploadingPages(false);
+      setPageUploadProgress('');
     }
   };
 
@@ -1823,7 +1827,7 @@ export const AdminPage: React.FC = () => {
                     <span className="text-xs font-bold text-[#8B5CFF]">
                       {uploadingCover ? 'Uploading...' : 'Upload Cover File'}
                     </span>
-                    <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleCoverUpload} className="hidden" />
                   </label>
                 </div>
 
@@ -1841,7 +1845,7 @@ export const AdminPage: React.FC = () => {
                     <span className="text-xs font-bold text-[#A79FC0]">
                       {uploadingBanner ? 'Uploading...' : 'Upload Banner File'}
                     </span>
-                    <input type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" />
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleBannerUpload} className="hidden" />
                   </label>
                 </div>
               </div>
@@ -1970,13 +1974,13 @@ export const AdminPage: React.FC = () => {
                   <label className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-[#8B5CFF]/40 bg-[#8B5CFF]/5 hover:bg-[#8B5CFF]/10 cursor-pointer transition">
                     <Upload className="w-8 h-8 text-[#8B5CFF] mb-2" />
                     <span className="text-xs font-bold text-white">
-                      {uploadingPages ? 'Uploading pages...' : 'Click or Drag & Drop Manga Pages Here'}
+                      {uploadingPages ? pageUploadProgress || 'Uploading pages...' : 'Click or Drag & Drop Manga Pages Here'}
                     </span>
-                    <span className="text-[10px] text-[#A79FC0] mt-0.5">Supports PNG, JPG, WebP</span>
+                    <span className="text-[10px] text-[#A79FC0] mt-0.5">Supports JPEG, PNG, WebP, GIF (maximum 10 MB each)</span>
                     <input
                       type="file"
                       multiple
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
                       onChange={handlePagesUpload}
                       disabled={uploadingPages}
                       className="hidden"
