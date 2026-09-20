@@ -6,7 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { auth, googleProvider, isFirebaseConfigured } from '../firebase';
+import { auth, googleProvider, getFirebaseConfigError, isFirebaseConfigured } from '../firebase';
 import {
   UserProfile,
   ReadingStatus,
@@ -250,9 +250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    const message = isFirebaseConfigured()
-      ? 'Firebase Authentication could not be initialized. Check the Firebase settings and try again.'
-      : 'Firebase is not configured. Add the VITE_FIREBASE_* environment variables in Vercel, then redeploy.';
+    const message = getFirebaseConfigError();
     showToast('Sign-In Error', message, 'error');
     throw new Error(message);
   };
@@ -294,9 +292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    const message = isFirebaseConfigured()
-      ? 'Firebase Authentication could not be initialized. Check the Firebase settings and try again.'
-      : 'Firebase is not configured. Add the VITE_FIREBASE_* environment variables in Vercel, then redeploy.';
+    const message = getFirebaseConfigError();
     showToast('Login Failed', message, 'error');
     throw new Error(message);
   };
@@ -336,9 +332,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    const message = isFirebaseConfigured()
-      ? 'Firebase Authentication could not be initialized. Check the Firebase settings and try again.'
-      : 'Firebase is not configured. Add the VITE_FIREBASE_* environment variables in Vercel, then redeploy.';
+    const message = getFirebaseConfigError();
     showToast('Registration Failed', message, 'error');
     throw new Error(message);
   };

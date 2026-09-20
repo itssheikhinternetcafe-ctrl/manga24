@@ -28,40 +28,63 @@ import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
 import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
+const cleanFirebaseEnvValue = (value: string | undefined): string | undefined => {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+
+  const hasMatchingQuotes =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"));
+
+  return hasMatchingQuotes ? trimmed.slice(1, -1).trim() || undefined : trimmed;
+};
+
+const firebaseEnv = {
+  VITE_FIREBASE_API_KEY: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_API_KEY),
+  VITE_FIREBASE_AUTH_DOMAIN: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN),
+  VITE_FIREBASE_PROJECT_ID: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_PROJECT_ID),
+  VITE_FIREBASE_STORAGE_BUCKET: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET),
+  VITE_FIREBASE_MESSAGING_SENDER_ID: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID),
+  VITE_FIREBASE_APP_ID: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_APP_ID),
+};
+
 // PASTE YOUR FIREBASE CONFIG CREDENTIALS HERE OR USE VITE_ ENVIRONMENT VARIABLES:
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSy_YOUR_FIREBASE_API_KEY_HERE',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'manga24-demo.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'manga24-demo',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'manga24-demo.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1234567890',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1234567890:web:abcdef123456',
+  apiKey: firebaseEnv.VITE_FIREBASE_API_KEY || 'AIzaSy_YOUR_FIREBASE_API_KEY_HERE',
+  authDomain: firebaseEnv.VITE_FIREBASE_AUTH_DOMAIN || 'manga24-demo.firebaseapp.com',
+  projectId: firebaseEnv.VITE_FIREBASE_PROJECT_ID || 'manga24-demo',
+  storageBucket: firebaseEnv.VITE_FIREBASE_STORAGE_BUCKET || 'manga24-demo.firebasestorage.app',
+  messagingSenderId: firebaseEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '1234567890',
+  appId: firebaseEnv.VITE_FIREBASE_APP_ID || '1:1234567890:web:abcdef123456',
 };
 
 /**
  * Checks if the user has replaced placeholder credentials with valid Firebase keys.
  */
-export function isFirebaseConfigured(): boolean {
-  const values = [
-    firebaseConfig.apiKey,
-    firebaseConfig.authDomain,
-    firebaseConfig.projectId,
-    firebaseConfig.storageBucket,
-    firebaseConfig.messagingSenderId,
-    firebaseConfig.appId,
-  ];
-
-  return values.every((value) => {
-    if (!value) return false;
-    return ![
+export function getFirebaseConfigProblems(): string[] {
+  const placeholders = [
       'YOUR_FIREBASE_API_KEY',
       'AIzaSy...',
       'manga24-demo',
       'your-project',
       '1234567890',
       'abcdef123456',
-    ].some((placeholder) => value.includes(placeholder));
-  });
+  ];
+
+  return Object.entries(firebaseEnv)
+    .filter(([, value]) => !value || placeholders.some((placeholder) => value.includes(placeholder)))
+    .map(([name]) => name);
+}
+
+export function isFirebaseConfigured(): boolean {
+  return getFirebaseConfigProblems().length === 0;
+}
+
+export function getFirebaseConfigError(): string {
+  const problems = getFirebaseConfigProblems();
+  return problems.length > 0
+    ? `Firebase is not configured. Missing or empty variable(s): ${problems.join(', ')}`
+    : 'Firebase Authentication could not be initialized. Check the Firebase settings and try again.';
 }
 
 // Singleton instances
