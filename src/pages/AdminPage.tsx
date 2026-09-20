@@ -302,6 +302,41 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  const handleReviewStory = async (story: Series, decision: 'published' | 'rejected') => {
+    const rejectionReason = decision === 'rejected'
+      ? window.prompt('Optional rejection reason for the writer:', story.rejectionReason || '') || ''
+      : '';
+    try {
+      await dbUpdateSeries(story.id, {
+        approvalStatus: decision,
+        isDraft: decision !== 'published',
+        rejectionReason,
+        ...(decision === 'published'
+          ? {
+              createdAt: story.createdAt || new Date().toISOString(),
+              isFeatured: false,
+              featured: false,
+              isTrending: false,
+              isEditorPick: false,
+            }
+          : {}),
+      });
+      const chapters = await dbGetChapters(story.id, true);
+      await Promise.all(
+        chapters.map((chapter) =>
+          dbUpdateChapter(chapter.id, {
+            approvalStatus: decision,
+            isDraft: decision !== 'published',
+          })
+        )
+      );
+      showToast(decision === 'published' ? 'Story Published' : 'Story Rejected', decision === 'published' ? 'The story is now visible to readers.' : 'The writer can see the rejection reason in their dashboard.', decision === 'published' ? 'success' : 'info');
+      await loadData();
+    } catch {
+      showToast('Review Error', 'The story could not be updated.', 'error');
+    }
+  };
+
   // Handle Chapter Pages Upload (Multiple Images)
   const handlePagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -1405,13 +1440,33 @@ export const AdminPage: React.FC = () => {
               Approved writers and artists with the Creator role submit original manga and web novels here before they go live on Manga24.
             </p>
 
-            <div className="p-8 text-center rounded-2xl bg-[#0E0A14] border border-[#2C2340]">
-              <Upload className="w-10 h-10 text-[#8B5CFF]/40 mx-auto mb-2" />
-              <p className="text-xs font-bold text-[#F5F1FF] mb-1">Queue is Clear</p>
-              <p className="text-[11px] text-[#A79FC0] max-w-sm mx-auto">
-                No pending submissions requiring editorial review. Creators can submit works at <code className="text-[#FF4D6D]">/creator-upload</code>.
-              </p>
-            </div>
+            {seriesList.filter((story) => story.approvalStatus === 'pending').length === 0 ? (
+              <div className="p-8 text-center rounded-2xl bg-[#0E0A14] border border-[#2C2340]">
+                <Upload className="w-10 h-10 text-[#8B5CFF]/40 mx-auto mb-2" />
+                <p className="text-xs font-bold text-[#F5F1FF] mb-1">Queue is Clear</p>
+                <p className="text-[11px] text-[#A79FC0] max-w-sm mx-auto">
+                  No pending stories require review. Writers can submit from <code className="text-[#FF4D6D]">/writer</code>.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {seriesList.filter((story) => story.approvalStatus === 'pending').map((story) => (
+                  <div key={story.id} className="p-4 rounded-2xl bg-[#0E0A14] border border-[#2C2340] flex flex-col sm:flex-row sm:items-center gap-4">
+                    <img src={story.coverUrl || story.coverImage} alt="" className="w-14 h-18 object-cover rounded-lg" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{story.title}</p>
+                      <p className="text-[11px] text-[#A79FC0] mt-1">{story.type} · By {story.author} · {story.genres?.join(', ')}</p>
+                      <p className="text-xs text-[#A79FC0] mt-2 line-clamp-2">{story.synopsis}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 shrink-0">
+                      <a href={`/series/${story.id}`} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg border border-[#2C2340] text-xs font-bold">Open</a>
+                      <button onClick={() => handleReviewStory(story, 'rejected')} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Reject</button>
+                      <button onClick={() => handleReviewStory(story, 'published')} className="px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-bold">Approve</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -123,6 +123,27 @@ html.light .glass-card {
   border-image: linear-gradient(135deg, #FF4D6D, #FF9F1C) 1;
 }
 
+.writer-input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  background: #0E0A14;
+  border: 1px solid #2C2340;
+  color: #F5F1FF;
+  font-size: 0.75rem;
+  outline: none;
+}
+
+.writer-input:focus {
+  border-color: #FF4D6D;
+}
+
+html.light .writer-input {
+  background: #F3EEFC;
+  border-color: #E2D9F3;
+  color: #1A1429;
+}
+
 /* Reader true black mode */
 .reader-pure-black {
   background-color: #000000 !important;

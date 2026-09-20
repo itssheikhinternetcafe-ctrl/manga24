@@ -12,6 +12,7 @@ import { DMCAPage } from './pages/DMCAPage';
 import { UploadRequestPage } from './pages/UploadRequestPage';
 import { AdminPage } from './pages/AdminPage';
 import { CreatorUploadPage } from './pages/CreatorUploadPage';
+import { WriterDashboardPage } from './pages/WriterDashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="community" element={<CommunityPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="creator-upload" element={<CreatorUploadPage />} />
+            <Route path="writer" element={<WriterDashboardPage />} />
             <Route path="dmca" element={<DMCAPage />} />
             <Route path="upload-request" element={<UploadRequestPage />} />
             <Route path="404" element={<NotFoundPage />} />

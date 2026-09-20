@@ -10,6 +10,7 @@ export const ALL_GENRES: string[] = [
 
 export type MangaStatus = 'Ongoing' | 'Completed' | 'Hiatus';
 export type PublicationStatus = MangaStatus;
+export type StoryApprovalStatus = 'draft' | 'pending' | 'published' | 'rejected';
 
 export type Demographic = 'Shounen' | 'Seinen' | 'Shoujo' | 'Josei' | 'All Ages';
 
@@ -38,8 +39,10 @@ export interface Chapter {
   textContent?: string; // Novel/story prose content
   isDraft: boolean;
   scheduledAt?: string;
-  approvalStatus?: 'approved' | 'pending' | 'rejected';
+  approvalStatus?: StoryApprovalStatus | 'approved';
   creatorId?: string;
+  authorId?: string;
+  authorName?: string;
 }
 
 export interface ChapterPage {
@@ -93,7 +96,10 @@ export interface Series {
   isEditorPick?: boolean;
   isTrending?: boolean;
   creatorId?: string;
-  approvalStatus?: 'approved' | 'pending' | 'rejected';
+  authorId?: string;
+  authorName?: string;
+  approvalStatus?: StoryApprovalStatus | 'approved';
+  rejectionReason?: string;
   chapters?: Chapter[];
 }
 

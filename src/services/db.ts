@@ -35,6 +35,7 @@ import {
   FilterOptions,
   LibraryItem,
   ReadingProgress,
+  StoryApprovalStatus,
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -92,7 +93,7 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
       const seriesCol = collection(db, 'series');
       let q = query(seriesCol);
       if (!includeDrafts) {
-        q = query(seriesCol, where('isDraft', '==', false));
+        q = query(seriesCol, where('approvalStatus', '==', 'published'));
       }
       const snapshot = await getDocs(q);
       allSeries = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Series));
@@ -103,7 +104,7 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
   } else {
     allSeries = getLocal<Series[]>(STORAGE_KEYS.SERIES, []);
     if (!includeDrafts) {
-      allSeries = allSeries.filter((s) => !s.isDraft);
+      allSeries = allSeries.filter((s) => s.approvalStatus === 'published');
     }
   }
 
@@ -186,7 +187,7 @@ export async function dbGetSeriesById(idOrSlug: string): Promise<Series | null> 
       }
 
       // Check by slug
-      const q = query(collection(db, 'series'), where('slug', '==', idOrSlug), where('isDraft', '==', false), firestoreLimit(1));
+      const q = query(collection(db, 'series'), where('slug', '==', idOrSlug), where('approvalStatus', '==', 'published'), firestoreLimit(1));
       const querySnap = await getDocs(q);
       if (!querySnap.empty) {
         const first = querySnap.docs[0];
@@ -237,14 +238,34 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
     latestChapterNumber: 0,
     latestUpdateDate: now.split('T')[0],
     creatorId: seriesData.creatorId,
-    approvalStatus: seriesData.approvalStatus || 'approved',
+    approvalStatus: seriesData.approvalStatus || 'published',
+    authorId: seriesData.authorId || seriesData.creatorId,
+    authorName: seriesData.authorName || seriesData.author || 'Unknown Author',
+    rejectionReason: seriesData.rejectionReason || '',
   };
 
   normalizeSeries(newSeries);
 
   if (isFirebaseConfigured() && db) {
     try {
-      await setDoc(doc(db, 'series', id), newSeries);
+      const isWriterSubmission = newSeries.approvalStatus === 'draft' || newSeries.approvalStatus === 'pending';
+      if (isWriterSubmission) {
+        const {
+          featured: _featured,
+          isFeatured: _isFeatured,
+          isTrending: _isTrending,
+          isEditorPick: _isEditorPick,
+          views: _views,
+          followersCount: _followersCount,
+          rating: _rating,
+          ratingCount: _ratingCount,
+          createdAt: _createdAt,
+          ...writerSeries
+        } = newSeries;
+        await setDoc(doc(db, 'series', id), writerSeries);
+      } else {
+        await setDoc(doc(db, 'series', id), newSeries);
+      }
     } catch (err) {
       console.error('[Firestore] Save error:', err);
       throw err;
@@ -267,6 +288,7 @@ export async function dbUpdateSeries(id: string, updates: Partial<Series>): Prom
     ...existing,
     ...updates,
     updatedAt: now,
+    approvalStatus: updates.approvalStatus || existing.approvalStatus || (updates.isDraft ? 'draft' : 'published'),
     coverUrl: updates.coverUrl || updates.coverImage || existing.coverUrl,
     bannerUrl: updates.bannerUrl || updates.bannerImage || existing.bannerUrl,
   };
@@ -275,7 +297,15 @@ export async function dbUpdateSeries(id: string, updates: Partial<Series>): Prom
 
   if (isFirebaseConfigured() && db) {
     try {
-      await setDoc(doc(db, 'series', id), updated, { merge: true });
+      const firestoreUpdates: Partial<Series> = {
+        ...updates,
+        updatedAt: now,
+        coverUrl: updates.coverUrl || updates.coverImage,
+        bannerUrl: updates.bannerUrl || updates.bannerImage,
+      };
+      delete firestoreUpdates.coverImage;
+      delete firestoreUpdates.bannerImage;
+      await setDoc(doc(db, 'series', id), firestoreUpdates, { merge: true });
     } catch (err) {
       console.error('[Firestore] Update series error:', err);
       throw err;
@@ -289,6 +319,22 @@ export async function dbUpdateSeries(id: string, updates: Partial<Series>): Prom
   );
 
   return updated;
+}
+
+export async function dbGetSeriesByAuthor(authorId: string): Promise<Series[]> {
+  if (isFirebaseConfigured() && db) {
+    try {
+      const snap = await getDocs(query(collection(db, 'series'), where('authorId', '==', authorId)));
+      return snap.docs.map((item) => normalizeSeries({ id: item.id, ...item.data() } as Series));
+    } catch (err) {
+      console.warn('[Firestore] Error getting author stories:', err);
+      return [];
+    }
+  }
+
+  return getLocal<Series[]>(STORAGE_KEYS.SERIES, [])
+    .filter((series) => series.authorId === authorId || series.creatorId === authorId)
+    .map(normalizeSeries);
 }
 
 export async function dbDeleteSeries(id: string): Promise<boolean> {
@@ -328,7 +374,7 @@ export async function dbGetChapters(seriesId: string, includeDrafts = false): Pr
     try {
       const q = includeDrafts
         ? query(collection(db, 'chapters'), where('seriesId', '==', seriesId))
-        : query(collection(db, 'chapters'), where('seriesId', '==', seriesId), where('isDraft', '==', false));
+        : query(collection(db, 'chapters'), where('seriesId', '==', seriesId), where('approvalStatus', '==', 'published'), where('isDraft', '==', false));
       const snap = await getDocs(q);
       list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Chapter));
     } catch (err) {
@@ -340,7 +386,7 @@ export async function dbGetChapters(seriesId: string, includeDrafts = false): Pr
   }
 
   if (!includeDrafts) {
-    list = list.filter((c) => !c.isDraft);
+    list = list.filter((c) => !c.isDraft && c.approvalStatus === 'published');
   }
 
   return list.sort((a, b) => b.number - a.number);
@@ -369,8 +415,10 @@ export async function dbCreateChapter(chapterData: Partial<Chapter>): Promise<Ch
     likes: 0,
     isDraft: Boolean(chapterData.isDraft),
     scheduledAt: chapterData.scheduledAt,
-    approvalStatus: chapterData.approvalStatus || 'approved',
+    approvalStatus: chapterData.approvalStatus || 'published',
     creatorId: chapterData.creatorId,
+    authorId: chapterData.authorId || chapterData.creatorId,
+    authorName: chapterData.authorName,
   };
 
   if (isFirebaseConfigured() && db) {
@@ -402,12 +450,19 @@ export async function dbCreateChapter(chapterData: Partial<Chapter>): Promise<Ch
 
 export async function dbUpdateChapter(id: string, updates: Partial<Chapter>): Promise<Chapter | null> {
   const local = getLocal<Chapter[]>(STORAGE_KEYS.CHAPTERS, []);
-  const existing = local.find((c) => c.id === id);
+  let existing = local.find((c) => c.id === id);
+
+  if (!existing && isFirebaseConfigured() && db) {
+    const snapshot = await getDoc(doc(db, 'chapters', id));
+    if (snapshot.exists()) existing = { id: snapshot.id, ...snapshot.data() } as Chapter;
+  }
+
   if (!existing) return null;
 
   const updated: Chapter = {
     ...existing,
     ...updates,
+    seriesId: existing.seriesId,
   };
 
   if (isFirebaseConfigured() && db) {
@@ -421,7 +476,7 @@ export async function dbUpdateChapter(id: string, updates: Partial<Chapter>): Pr
 
   setLocal(
     STORAGE_KEYS.CHAPTERS,
-    local.map((c) => (c.id === id ? updated : c))
+    [updated, ...local.filter((c) => c.id !== id)]
   );
 
   return updated;

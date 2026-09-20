@@ -22,6 +22,7 @@ import {
   Star,
   Shield,
   Upload,
+  BookOpen,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -385,6 +386,13 @@ export const Navbar: React.FC = () => {
                       <Upload className="w-3.5 h-3.5 text-[#8B5CFF]" />
                       <span>Creator Studio</span>
                     </Link>
+                    <Link
+                      to="/writer"
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-[#FF9F1C] hover:bg-[#FF9F1C]/10 transition"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-[#FF9F1C]" />
+                      <span>Writer Dashboard</span>
+                    </Link>
                     {user.role === 'admin' && (
                       <Link
                         to="/admin"
@@ -482,6 +490,15 @@ export const Navbar: React.FC = () => {
               <Upload className="w-4 h-4 text-[#8B5CFF]" />
               <span>Creator Studio</span>
             </Link>
+            {user && (
+              <Link
+                to="/writer"
+                className="flex items-center gap-2 p-3 rounded-xl bg-[#171122] light:bg-[#F3EEFC] text-xs font-semibold text-[#FF9F1C]"
+              >
+                <BookOpen className="w-4 h-4 text-[#FF9F1C]" />
+                <span>Writer Dashboard</span>
+              </Link>
+            )}
             {user?.role === 'admin' && (
               <Link
                 to="/admin"
