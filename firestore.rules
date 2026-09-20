@@ -34,7 +34,8 @@ service cloud.firestore {
       allow create: if isAdmin() || (
         isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'pending'] &&
+        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        request.resource.data.createdAt == request.time &&
         (!request.resource.data.keys().hasAny(['featured']) || request.resource.data.featured == false) &&
         (!request.resource.data.keys().hasAny(['isFeatured']) || request.resource.data.isFeatured == false) &&
         (!request.resource.data.keys().hasAny(['isTrending']) || request.resource.data.isTrending == false) &&
@@ -42,14 +43,14 @@ service cloud.firestore {
         (!request.resource.data.keys().hasAny(['views']) || request.resource.data.views == 0) &&
         (!request.resource.data.keys().hasAny(['followersCount']) || request.resource.data.followersCount == 0) &&
         (!request.resource.data.keys().hasAny(['rating']) || request.resource.data.rating == 0) &&
-        (!request.resource.data.keys().hasAny(['ratingCount']) || request.resource.data.ratingCount == 0) &&
-        !request.resource.data.keys().hasAny(['createdAt'])
+        (!request.resource.data.keys().hasAny(['ratingCount']) || request.resource.data.ratingCount == 0)
       );
       allow update: if isAdmin() || (
         isAuthenticated() &&
         resource.data.authorId == request.auth.uid &&
         request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'pending'] &&
+        resource.data.approvalStatus != 'rejected' &&
+        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'featured', 'isFeatured', 'isTrending', 'isEditorPick',
           'views', 'followersCount', 'rating', 'ratingCount', 'createdAt'
@@ -81,13 +82,19 @@ service cloud.firestore {
       allow create: if isAdmin() || (
         isAuthenticated() &&
         get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'pending']
+        get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.approvalStatus != 'rejected' &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.approvalStatus in ['draft', 'published'] &&
+        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft')
       );
       allow update: if isAdmin() || (
         isAuthenticated() &&
         get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.authorId == request.auth.uid &&
         request.resource.data.seriesId == resource.data.seriesId &&
-        request.resource.data.approvalStatus in ['draft', 'pending']
+        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.approvalStatus != 'rejected' &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.approvalStatus in ['draft', 'published'] &&
+        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft')
       );
       allow delete: if isAdmin();
     }

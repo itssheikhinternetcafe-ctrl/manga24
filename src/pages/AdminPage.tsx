@@ -1471,6 +1471,41 @@ export const AdminPage: React.FC = () => {
                 ))}
               </div>
             )}
+
+            <div className="mt-8 pt-6 border-t border-[#2C2340] light:border-[#E2D9F3]">
+              <h3 className="text-base font-bold font-heading mb-1">Writer stories</h3>
+              <p className="text-xs text-[#A79FC0] mb-4">
+                Published stories can be unpublished by an admin and republished later.
+              </p>
+              {seriesList.filter((story) => Boolean(story.authorId)).length === 0 ? (
+                <div className="p-8 text-center rounded-2xl bg-[#0E0A14] border border-[#2C2340]">
+                  <p className="text-xs text-[#A79FC0]">No writer stories yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {seriesList.filter((story) => Boolean(story.authorId)).map((story) => (
+                    <div key={story.id} className="p-4 rounded-2xl bg-[#0E0A14] border border-[#2C2340] flex flex-col sm:flex-row sm:items-center gap-4">
+                      <img src={story.coverUrl || story.coverImage} alt="" className="w-14 h-18 object-cover rounded-lg" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm truncate">{story.title}</p>
+                        <p className="text-[11px] text-[#A79FC0] mt-1">{story.type} · By {story.author}</p>
+                        <span className={`inline-block mt-2 px-2 py-1 rounded-full border text-[10px] font-bold ${story.approvalStatus === 'published' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : story.approvalStatus === 'rejected' ? 'bg-red-500/15 text-red-400 border-red-500/30' : 'bg-[#A79FC0]/15 text-[#A79FC0] border-[#A79FC0]/30'}`}>
+                          {story.approvalStatus === 'published' ? 'Published' : story.approvalStatus === 'rejected' ? 'Removed by admin' : 'Draft'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 shrink-0">
+                        <a href={`/series/${story.id}`} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg border border-[#2C2340] text-xs font-bold">Open</a>
+                        {story.approvalStatus === 'published' ? (
+                          <button onClick={() => handleReviewStory(story, 'rejected')} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Unpublish</button>
+                        ) : (
+                          <button onClick={() => handleReviewStory(story, 'published')} className="px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-bold">Republish</button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

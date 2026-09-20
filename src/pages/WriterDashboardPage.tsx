@@ -39,9 +39,9 @@ type DashboardView = 'overview' | 'new' | 'comments' | 'profile';
 
 const statusLabel: Record<string, string> = {
   published: 'Published',
-  pending: 'In review',
+  pending: 'Draft',
   draft: 'Draft',
-  rejected: 'Rejected',
+  rejected: 'Removed by admin',
   approved: 'Published',
 };
 
@@ -200,7 +200,7 @@ export const WriterDashboardPage: React.FC = () => {
             genres: form.genres,
             synopsis: form.description.trim(),
             coverUrl: form.coverUrl,
-            approvalStatus,
+            approvalStatus: approvalStatus === 'published' ? 'published' : 'draft',
             isDraft: approvalStatus !== 'published',
             authorId: user.id,
             authorName: user.username,
@@ -216,7 +216,7 @@ export const WriterDashboardPage: React.FC = () => {
             authorId: user.id,
             authorName: user.username,
             creatorId: user.id,
-            approvalStatus,
+            approvalStatus: approvalStatus === 'published' ? 'published' : 'draft',
             isDraft: approvalStatus !== 'published',
           });
 
@@ -228,7 +228,7 @@ export const WriterDashboardPage: React.FC = () => {
         pages: form.type === 'Novel' ? [] : form.pages,
         textContent: form.type === 'Novel' ? form.textContent : '',
         isDraft: approvalStatus !== 'published',
-        approvalStatus,
+        approvalStatus: approvalStatus === 'published' ? 'published' : 'draft',
         creatorId: user.id,
         authorId: user.id,
         authorName: user.username,
@@ -237,7 +237,7 @@ export const WriterDashboardPage: React.FC = () => {
       if (chapterId) await dbUpdateChapter(chapterId, chapterData);
       else await dbCreateChapter(chapterData);
 
-      showToast(approvalStatus === 'pending' ? 'Submitted for review' : 'Draft saved', approvalStatus === 'pending' ? 'An admin will review your story.' : 'Your story is saved privately.', 'success');
+      showToast(approvalStatus === 'published' ? 'Story published' : 'Draft saved', approvalStatus === 'published' ? 'Your story is now visible to readers.' : 'Your story is saved privately.', 'success');
       await loadStories();
       setView('overview');
       navigate('/writer');
@@ -290,7 +290,7 @@ export const WriterDashboardPage: React.FC = () => {
         <main className="flex-1 min-w-0">
           {view === 'overview' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between gap-3"><div><h1 className="text-2xl font-black font-heading">Overview</h1><p className="text-xs text-[#A79FC0] mt-1">Your stories, reads, and review status.</p></div><button onClick={() => openEditor()} className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-brand text-white text-xs font-bold"><Plus className="w-4 h-4" />New story</button></div>
+              <div className="flex items-center justify-between gap-3"><div><h1 className="text-2xl font-black font-heading">Overview</h1><p className="text-xs text-[#A79FC0] mt-1">Your stories, reads, and publication status.</p></div><button onClick={() => openEditor()} className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-brand text-white text-xs font-bold"><Plus className="w-4 h-4" />New story</button></div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[['Stories', stories.length], ['Total reads', totalReads.toLocaleString()], ['Followers', totalFollowers.toLocaleString()]].map(([label, value]) => <div key={label} className="p-4 rounded-2xl bg-[#171122] light:bg-white border border-[#2C2340] light:border-[#E2D9F3]"><p className="text-xs text-[#A79FC0]">{label}</p><p className="text-2xl font-black font-heading mt-2">{value}</p></div>)}
               </div>
@@ -300,7 +300,7 @@ export const WriterDashboardPage: React.FC = () => {
 
           {view === 'new' && (
             <div className="space-y-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><h1 className="text-2xl font-black font-heading">{editingStory ? 'Edit story' : 'New story'}</h1><p className="text-xs text-[#A79FC0] mt-1">Save privately or send it to admin review.</p></div><div className="flex gap-2"><button disabled={saving} onClick={() => saveStory('draft')} className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#2C2340] text-xs font-bold"><Save className="w-4 h-4" />Save draft</button><button disabled={saving} onClick={() => saveStory('pending')} className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-gradient-brand text-white text-xs font-bold"><Check className="w-4 h-4" />Submit for review</button></div></div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><h1 className="text-2xl font-black font-heading">{editingStory ? 'Edit story' : 'New story'}</h1><p className="text-xs text-[#A79FC0] mt-1">Save privately or publish directly.</p></div><div className="flex gap-2"><button disabled={saving || editingStory?.approvalStatus === 'rejected'} onClick={() => saveStory('draft')} className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#2C2340] text-xs font-bold"><Save className="w-4 h-4" />Save draft</button><button disabled={saving || editingStory?.approvalStatus === 'rejected'} onClick={() => saveStory('published')} className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-gradient-brand text-white text-xs font-bold"><Check className="w-4 h-4" />Publish</button></div></div>
               {error && <div role="alert" className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs">{error}</div>}
               <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5"><section className="p-4 rounded-2xl bg-[#171122] light:bg-white border border-[#2C2340] light:border-[#E2D9F3] h-fit"><label className="text-xs font-bold block mb-2">Cover image</label><div className="aspect-[3/4] rounded-xl border border-dashed border-[#8B5CFF]/40 bg-[#0E0A14] light:bg-[#F3EEFC] overflow-hidden flex items-center justify-center">{form.coverUrl ? <img src={form.coverUrl} alt="Cover preview" className="w-full h-full object-cover" /> : <ImageIcon className="w-8 h-8 text-[#8B5CFF]/60" />}</div><label className="mt-3 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#8B5CFF]/15 text-[#8B5CFF] text-xs font-bold cursor-pointer"><Upload className="w-4 h-4" />{uploadingCover ? 'Uploading...' : 'Upload cover'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleCoverUpload} className="hidden" /></label></section><section className="p-4 rounded-2xl bg-[#171122] light:bg-white border border-[#2C2340] light:border-[#E2D9F3] space-y-4"><div><label className="text-xs font-bold block mb-1.5">Title</label><input value={form.title} onChange={(e) => updateForm('title', e.target.value)} className="writer-input" placeholder="Story title" /></div><div><label className="text-xs font-bold block mb-1.5">Type</label><select value={form.type} onChange={(e) => updateForm('type', e.target.value)} className="writer-input">{WRITER_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div><div><label className="text-xs font-bold block mb-1.5">Genres</label><div className="flex flex-wrap gap-2">{WRITER_GENRES.map((genre) => <button type="button" key={genre} onClick={() => updateForm('genres', form.genres.includes(genre) ? form.genres.filter((item) => item !== genre) : [...form.genres, genre])} className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold ${form.genres.includes(genre) ? 'bg-[#8B5CFF] border-[#8B5CFF] text-white' : 'border-[#2C2340] text-[#A79FC0]'}`}>{genre}</button>)}</div></div><div><label className="text-xs font-bold block mb-1.5">Description</label><textarea rows={6} value={form.description} onChange={(e) => updateForm('description', e.target.value)} className="writer-input resize-y" placeholder="Tell readers what your story is about..." /></div></section></div>
               <section className="p-4 rounded-2xl bg-[#171122] light:bg-white border border-[#2C2340] light:border-[#E2D9F3] space-y-4"><div className="flex items-center justify-between"><div><h2 className="font-bold font-heading">Chapter 1</h2><p className="text-[11px] text-[#A79FC0]">Add the first chapter before submitting.</p></div><FileText className="w-5 h-5 text-[#FF9F1C]" /></div><input value={form.chapterTitle} onChange={(e) => updateForm('chapterTitle', e.target.value)} className="writer-input" placeholder="Chapter title" /><div className="flex gap-2"><button type="button" onClick={() => updateForm('textContent', form.textContent)} className={`px-3 py-2 rounded-lg text-xs font-bold ${form.type === 'Novel' ? 'bg-[#FF9F1C] text-[#171122]' : 'bg-[#0E0A14] text-[#A79FC0]'}`}>Write text</button><label className={`px-3 py-2 rounded-lg text-xs font-bold cursor-pointer ${form.type !== 'Novel' ? 'bg-[#8B5CFF] text-white' : 'bg-[#0E0A14] text-[#A79FC0]'}`}><Upload className="w-3.5 h-3.5 inline mr-1" />Upload pages<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={handlePagesUpload} className="hidden" /></label></div>{form.type === 'Novel' ? <textarea rows={14} value={form.textContent} onChange={(e) => updateForm('textContent', e.target.value)} className="writer-input resize-y" placeholder="Write Chapter 1 here..." /> : <div className="flex flex-wrap gap-2">{form.pages.map((page, index) => <div key={`${page}-${index}`} className="relative"><img src={page} alt={`Page ${index + 1}`} className="w-16 h-20 object-cover rounded-lg" /><button type="button" onClick={() => updateForm('pages', form.pages.filter((_, item) => item !== index))} className="absolute -right-1 -top-1 rounded-full bg-red-500 text-white p-0.5"><X className="w-3 h-3" /></button></div>)}{uploadingPages && <span className="text-xs text-[#A79FC0]">{pageUploadProgress || 'Uploading...'}</span>}</div>}</section>

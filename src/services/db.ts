@@ -22,6 +22,7 @@ import {
   limit as firestoreLimit,
   increment,
   Timestamp,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase';
 import {
@@ -248,8 +249,8 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
 
   if (isFirebaseConfigured() && db) {
     try {
-      const isWriterSubmission = newSeries.approvalStatus === 'draft' || newSeries.approvalStatus === 'pending';
-      if (isWriterSubmission) {
+      const isAuthorSubmission = Boolean(newSeries.authorId) && ['draft', 'pending', 'published'].includes(newSeries.approvalStatus || '');
+      if (isAuthorSubmission) {
         const {
           featured: _featured,
           isFeatured: _isFeatured,
@@ -262,7 +263,7 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
           createdAt: _createdAt,
           ...writerSeries
         } = newSeries;
-        await setDoc(doc(db, 'series', id), writerSeries);
+        await setDoc(doc(db, 'series', id), { ...writerSeries, createdAt: serverTimestamp() });
       } else {
         await setDoc(doc(db, 'series', id), newSeries);
       }
