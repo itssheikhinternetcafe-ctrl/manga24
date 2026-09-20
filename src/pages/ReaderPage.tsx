@@ -60,6 +60,8 @@ export const ReaderPage: React.FC = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
+  const isContinuousMode =
+    readingMode === 'webtoon' || ['Manhwa', 'Manhua', 'Webtoon'].includes(series?.type || '');
 
   // Load series & pages
   useEffect(() => {
@@ -89,9 +91,9 @@ export const ReaderPage: React.FC = () => {
     loadData();
   }, [id, currentChNum]);
 
-  // Track scroll position for Webtoon mode & auto-hide controls
+  // Track scroll position for continuous mode & auto-hide controls
   useEffect(() => {
-    if (readingMode !== 'webtoon') return;
+    if (!isContinuousMode) return;
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -117,7 +119,7 @@ export const ReaderPage: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [readingMode, id, currentChNum, pages.length]);
+  }, [isContinuousMode, id, currentChNum, pages.length]);
 
   // Keyboard navigation shortcuts
   useEffect(() => {
@@ -208,7 +210,7 @@ export const ReaderPage: React.FC = () => {
 
   // Reading progress percentage calculation
   const progressPercent =
-    readingMode === 'webtoon'
+    isContinuousMode
       ? Math.min(100, Math.round(((currentPageIndex + 1) / (pages.length || 1)) * 100))
       : Math.round(((currentPageIndex + 1) / (pages.length || 1)) * 100);
 
@@ -508,12 +510,11 @@ export const ReaderPage: React.FC = () => {
               {currentChapter.textContent}
             </div>
           </div>
-        ) : readingMode === 'webtoon' ? (
+        ) : isContinuousMode ? (
           /* Webtoon Continuous Scroll View */
           <div
-            className="w-full flex flex-col items-center"
+            className="w-full max-w-[800px] flex flex-col items-center leading-[0]"
             style={{
-              maxWidth: fitMode === 'original' ? '760px' : fitMode === 'height' ? '640px' : '820px',
               transform: `scale(${zoom / 100})`,
               transformOrigin: 'top center',
             }}
@@ -524,6 +525,8 @@ export const ReaderPage: React.FC = () => {
                 page={p}
                 seriesTitle={series?.title || 'Manga'}
                 fitMode={fitMode}
+                continuous
+                eager={pages.indexOf(p) < 3}
               />
             ))}
           </div>
@@ -642,7 +645,7 @@ export const ReaderPage: React.FC = () => {
 
           {/* Center Page Progress Indicator & Paged navigation */}
           <div className="flex items-center gap-2 text-xs font-mono-meta font-semibold">
-            {readingMode !== 'webtoon' && (
+            {!isContinuousMode && (
               <button
                 onClick={prevPage}
                 disabled={currentPageIndex === 0}
@@ -654,10 +657,10 @@ export const ReaderPage: React.FC = () => {
             )}
 
             <span>
-              Page {readingMode === 'webtoon' ? '1' : currentPageIndex + 1} / {pages.length}
+              Page {isContinuousMode ? '1' : currentPageIndex + 1} / {pages.length}
             </span>
 
-            {readingMode !== 'webtoon' && (
+            {!isContinuousMode && (
               <button
                 onClick={nextPage}
                 disabled={currentPageIndex === pages.length - 1}
@@ -693,20 +696,24 @@ interface PanelRendererProps {
   page: ChapterPage;
   seriesTitle: string;
   fitMode: 'width' | 'height' | 'original';
+  continuous?: boolean;
+  eager?: boolean;
 }
 
-const ComicPanelRenderer: React.FC<PanelRendererProps> = ({ page, seriesTitle, fitMode }) => {
+const ComicPanelRenderer: React.FC<PanelRendererProps> = ({ page, seriesTitle, fitMode, continuous = false, eager = false }) => {
   if (page.imageUrl) {
     return (
-      <div className="w-full my-2 relative flex justify-center">
+      <div className={`w-full relative flex justify-center ${continuous ? 'leading-[0]' : 'my-2'}`}>
         <img
           src={page.imageUrl}
           alt={`${seriesTitle} - Page ${page.pageNumber}`}
-          className="w-full h-auto object-contain rounded-xl shadow-2xl border border-[#2C2340]/60 light:border-[#E2D9F3]"
+          className={`w-full h-auto object-contain ${
+            continuous ? 'block' : 'rounded-xl shadow-2xl border border-[#2C2340]/60 light:border-[#E2D9F3]'
+          }`}
           style={{
-            maxHeight: fitMode === 'height' ? '84vh' : 'none',
+            maxHeight: continuous || fitMode !== 'height' ? 'none' : '84vh',
           }}
-          loading="lazy"
+          loading={eager ? 'eager' : 'lazy'}
         />
       </div>
     );
@@ -725,12 +732,14 @@ const ComicPanelRenderer: React.FC<PanelRendererProps> = ({ page, seriesTitle, f
     themeGradients['violet-noir'];
 
   return (
-    <div className="w-full my-2 relative transition-all duration-300">
+    <div className={`w-full relative transition-all duration-300 ${continuous ? 'leading-[0]' : 'my-2'}`}>
       <svg
         viewBox="0 0 800 1150"
-        className="w-full h-auto rounded-xl shadow-2xl border border-[#2C2340]/60 light:border-[#E2D9F3]"
+        className={`w-full h-auto ${
+          continuous ? 'block' : 'rounded-xl shadow-2xl border border-[#2C2340]/60 light:border-[#E2D9F3]'
+        }`}
         style={{
-          maxHeight: fitMode === 'height' ? '82vh' : 'none',
+          maxHeight: continuous || fitMode !== 'height' ? 'none' : '82vh',
         }}
       >
         <defs>
