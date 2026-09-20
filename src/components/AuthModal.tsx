@@ -123,7 +123,11 @@ export const AuthModal: React.FC = () => {
 
         {/* Error notice */}
         {error && (
-          <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2"
+          >
             <ShieldAlert className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>

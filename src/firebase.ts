@@ -42,16 +42,26 @@ const firebaseConfig = {
  * Checks if the user has replaced placeholder credentials with valid Firebase keys.
  */
 export function isFirebaseConfigured(): boolean {
-  const apiKey = firebaseConfig.apiKey || '';
-  const projectId = firebaseConfig.projectId || '';
-  return Boolean(
-    apiKey &&
-    !apiKey.includes('YOUR_FIREBASE_API_KEY') &&
-    !apiKey.includes('AIzaSy...') &&
-    projectId &&
-    !projectId.includes('manga24-demo') &&
-    !projectId.includes('your-project')
-  );
+  const values = [
+    firebaseConfig.apiKey,
+    firebaseConfig.authDomain,
+    firebaseConfig.projectId,
+    firebaseConfig.storageBucket,
+    firebaseConfig.messagingSenderId,
+    firebaseConfig.appId,
+  ];
+
+  return values.every((value) => {
+    if (!value) return false;
+    return ![
+      'YOUR_FIREBASE_API_KEY',
+      'AIzaSy...',
+      'manga24-demo',
+      'your-project',
+      '1234567890',
+      'abcdef123456',
+    ].some((placeholder) => value.includes(placeholder));
+  });
 }
 
 // Singleton instances

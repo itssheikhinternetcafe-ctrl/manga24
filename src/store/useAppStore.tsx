@@ -246,12 +246,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } catch (err: any) {
         console.warn('Google sign-in error:', err);
         showToast('Sign-In Error', err.message || 'Failed to authenticate with Google.', 'error');
-        return;
+        throw err;
       }
     }
 
-    // Local instant fallback
-    showToast('Not Connected', 'Firebase is not configured. Add the VITE_FIREBASE_* keys.', 'error');
+    const message = isFirebaseConfigured()
+      ? 'Firebase Authentication could not be initialized. Check the Firebase settings and try again.'
+      : 'Firebase is not configured. Add the VITE_FIREBASE_* environment variables in Vercel, then redeploy.';
+    showToast('Sign-In Error', message, 'error');
+    throw new Error(message);
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
@@ -291,8 +294,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    // Local fallback
-    showToast('Not Connected', 'Firebase is not configured. Add the VITE_FIREBASE_* keys.', 'error');
+    const message = isFirebaseConfigured()
+      ? 'Firebase Authentication could not be initialized. Check the Firebase settings and try again.'
+      : 'Firebase is not configured. Add the VITE_FIREBASE_* environment variables in Vercel, then redeploy.';
+    showToast('Login Failed', message, 'error');
+    throw new Error(message);
   };
 
   const signupWithEmail = async (email: string, pass: string, username: string) => {
@@ -330,8 +336,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    // Local fallback with role: 'user'
-    showToast('Not Connected', 'Firebase is not configured. Add the VITE_FIREBASE_* keys.', 'error');
+    const message = isFirebaseConfigured()
+      ? 'Firebase Authentication could not be initialized. Check the Firebase settings and try again.'
+      : 'Firebase is not configured. Add the VITE_FIREBASE_* environment variables in Vercel, then redeploy.';
+    showToast('Registration Failed', message, 'error');
+    throw new Error(message);
   };
 
   const logout = async () => {
