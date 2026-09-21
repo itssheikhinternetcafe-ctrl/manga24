@@ -21,7 +21,7 @@ const categories = [
   'General',
   'Chapter Discussions',
   'Recommendations',
-  'Scanlation News',
+  'Creator News',
   'Bug Reports',
 ];
 
@@ -232,7 +232,7 @@ export const CommunityPage: React.FC = () => {
               </h4>
               <ul className="space-y-2 text-xs text-[#A79FC0] light:text-[#6E6288] list-disc list-inside leading-relaxed">
                 <li>Always use the spoiler tag for recent raw chapters.</li>
-                <li>Respect scanlation groups and voluntary translators.</li>
+                <li>Respect creators and authorized publishers.</li>
                 <li>No hate speech, toxic flame wars, or piracy leaks.</li>
                 <li>Keep discussion threads in relevant categories.</li>
               </ul>
@@ -242,11 +242,11 @@ export const CommunityPage: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-[#FF4D6D]" />
                 <h4 className="text-xs font-bold font-heading text-[#F5F1FF] light:text-[#1A1429]">
-                  Scanlation Group Verification
+                  Creator Verification
                 </h4>
               </div>
               <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mb-3 leading-relaxed">
-                Are you a team leader or scanlator? Verify your group to unlock direct chapter uploads, team badges, and reader analytics.
+                Are you a creator or authorized publisher? Verify your account to unlock direct chapter uploads and reader analytics.
               </p>
               <a
                 href="/upload-request"
@@ -258,7 +258,7 @@ export const CommunityPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Scanlation Leaderboard View */
+        /* Creator leaderboard view */
         <div className="max-w-3xl mx-auto p-6 rounded-3xl bg-[#171122] border border-[#2C2340] light:bg-white light:border-[#E2D9F3] shadow-xl">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2C2340]/60 light:border-[#E2D9F3]">
             <div className="w-10 h-10 rounded-2xl bg-[#FF9F1C] flex items-center justify-center text-black shadow-lg">
@@ -266,10 +266,10 @@ export const CommunityPage: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg font-bold font-heading text-[#F5F1FF] light:text-[#1A1429]">
-                Top Scanlation Teams & Uploaders
+                Top Creators & Uploaders
               </h2>
               <p className="text-xs text-[#A79FC0] light:text-[#6E6288]">
-                Ranked by weekly releases and community translation quality score
+                Ranked by weekly releases and community quality score
               </p>
             </div>
           </div>
@@ -278,10 +278,10 @@ export const CommunityPage: React.FC = () => {
             <div className="p-8 text-center rounded-2xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-dashed border-[#2C2340] light:border-[#E2D9F3]">
               <Trophy className="w-8 h-8 text-[#A79FC0] mx-auto mb-2 opacity-40" />
               <p className="text-xs font-bold text-[#F5F1FF] light:text-[#1A1429]">
-                No scanlation team data yet
+                No creator data yet
               </p>
               <p className="text-[11px] text-[#A79FC0] light:text-[#6E6288] max-w-sm mx-auto mt-1">
-                As creators and scanlation teams publish chapters on Manhwa24, real-time release rankings and leaderboards will appear here.
+                As creators publish chapters on Manhwa24, real-time release rankings and leaderboards will appear here.
               </p>
             </div>
           </div>

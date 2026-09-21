@@ -1,51 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShieldCheck, Sparkles, Send, Github, Download, Compass, Bookmark, MessageSquare } from 'lucide-react';
-import { useAppStore } from '../store/useAppStore';
+import { Heart, ShieldCheck, Github, MessageSquare } from 'lucide-react';
 import { SITE_EMAIL, SITE_NAME } from '../config';
 
 export const Footer: React.FC = () => {
-  const { setIosGuideOpen } = useAppStore();
-
   return (
-    <footer className="w-full bg-[#0E0A14] border-t border-[#2C2340] light:bg-[#F3EEFC] light:border-[#E2D9F3] text-[#A79FC0] light:text-[#6E6288] mt-16 transition-colors">
-      {/* Top Banner / Newsletter / PWA Callout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 border-b border-[#2C2340]/60 light:border-[#E2D9F3]">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          <div className="md:col-span-6 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D6D] animate-ping" />
-              <span className="text-xs font-bold font-heading text-[#F5F1FF] light:text-[#1A1429] uppercase tracking-wider">
-                Read Anywhere, Anytime 24/7
-              </span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-black font-heading text-[#F5F1FF] light:text-[#1A1429]">
-              Install Manhwa24 as a Progressive Web App
-            </h3>
-            <p className="text-xs sm:text-sm text-[#A79FC0] light:text-[#6E6288] leading-relaxed">
-              Get an app icon on your home screen, zero browser address bars, instant chapter caching, and seamless reader mode.
-            </p>
-          </div>
-
-          <div className="md:col-span-6 flex flex-wrap items-center md:justify-end gap-3">
-            <button
-              onClick={() => setIosGuideOpen(true)}
-              className="px-5 py-2.5 rounded-2xl bg-gradient-brand text-white font-heading font-bold text-xs sm:text-sm shadow-xl hover:opacity-95 active:scale-95 transition flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              <span>Install Manhwa24 PWA</span>
-            </button>
-            <Link
-              to="/upload-request"
-              className="px-4 py-2.5 rounded-2xl bg-[#171122] hover:bg-[#1F1830] light:bg-white light:hover:bg-[#E2D9F3] text-[#F5F1FF] light:text-[#1A1429] border border-[#2C2340] light:border-[#E2D9F3] font-semibold text-xs sm:text-sm transition flex items-center gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-[#FF9F1C]" />
-              <span>Submit Series Upload</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-
+    <footer className="w-full bg-[#0E0A14] border-t border-[#2C2340] text-[#A79FC0] mt-16">
       {/* Main Links Directory */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
@@ -56,7 +16,7 @@ export const Footer: React.FC = () => {
                 <span className="font-heading font-black text-sm">24</span>
               </div>
               <span className="font-heading font-extrabold text-xl tracking-tight text-[#F5F1FF] light:text-[#1A1429]">
-                Manga<span className="text-gradient-brand">24</span>
+                Manhwa<span className="text-gradient-brand">24</span>
               </span>
             </Link>
             <p className="text-xs leading-relaxed max-w-sm">
@@ -142,13 +102,8 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/community" className="hover:text-[#FF9F1C] transition">
-                  Scanlation Leaderboards
-                </Link>
-              </li>
-              <li>
                 <Link to="/upload-request" className="hover:text-[#FF9F1C] transition">
-                  Submit Scanlations
+                  Submit Original Work
                 </Link>
               </li>
               <li>

@@ -28,8 +28,6 @@ export const LibraryPage: React.FC = () => {
     readingHistory,
     collections,
     createCollection,
-    theme,
-    toggleTheme,
     readingMode,
     setReadingMode,
     user,
@@ -409,22 +407,6 @@ export const LibraryPage: React.FC = () => {
           </div>
 
           <div className="space-y-4 text-xs">
-            {/* Theme Toggle */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#0E0A14] light:bg-[#F3EEFC]">
-              <div>
-                <span className="font-semibold block text-sm">Theme Mode</span>
-                <span className="text-[11px] text-[#A79FC0] light:text-[#6E6288]">
-                  Currently using: {theme === 'dark' ? 'Deep Ink-Plum Dark' : 'Bright Light'}
-                </span>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className="py-1.5 px-3 rounded-xl bg-gradient-brand text-white font-bold text-xs"
-              >
-                Switch to {theme === 'dark' ? 'Light' : 'Dark'}
-              </button>
-            </div>
-
             {/* Default Reading Mode */}
             <div className="p-3 rounded-2xl bg-[#0E0A14] light:bg-[#F3EEFC] space-y-2">
               <span className="font-semibold block text-sm">Default Reader Layout</span>

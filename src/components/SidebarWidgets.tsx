@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Series, CommunityPost } from '../types';
-import { PWAInstallButton } from './PWAInstallButton';
 import {
   Trophy,
   CheckCircle2,
@@ -47,9 +46,6 @@ export const SidebarWidgets: React.FC = () => {
 
   return (
     <aside className="space-y-6">
-      {/* PWA In-App Install Widget */}
-      <PWAInstallButton variant="card" />
-
       {/* Join Discord Banner */}
       <div className="p-4 rounded-2xl bg-gradient-to-br from-[#5865F2]/20 via-[#171122] to-[#1F1830] border border-[#5865F2]/30 light:from-[#5865F2]/10 light:to-white light:border-[#5865F2]/20 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
@@ -69,7 +65,7 @@ export const SidebarWidgets: React.FC = () => {
           <span className="w-2 h-2 rounded-full bg-[#57F287] ring-4 ring-[#57F287]/20" />
         </div>
         <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mb-3 leading-relaxed">
-          Chat raw chapter spoilers, scanlation releases, and series recommendations 24/7.
+          Chat chapter spoilers, creator releases, and series recommendations 24/7.
         </p>
         <a
           href="https://discord.gg"

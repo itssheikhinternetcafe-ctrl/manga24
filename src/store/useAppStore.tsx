@@ -36,10 +36,6 @@ interface ToastInfo {
 }
 
 interface AppContextType {
-  // Theme
-  theme: 'dark' | 'light';
-  toggleTheme: () => void;
-
   // Auth & Profile
   user: UserProfile | null;
   login: (username: string, email: string, role?: string) => Promise<void>;
@@ -88,34 +84,15 @@ interface AppContextType {
   showToast: (title: string, message: string, type?: 'success' | 'info' | 'error') => void;
   dismissToast: (id: string) => void;
 
-  // iOS PWA Guide Modal
-  iosGuideOpen: boolean;
-  setIosGuideOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Theme state
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const saved = localStorage.getItem('manga24_theme');
-    return saved === 'light' ? 'light' : 'dark';
-  });
-
   useEffect(() => {
-    localStorage.setItem('manga24_theme', theme);
-    if (theme === 'light') {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-      document.documentElement.classList.add('dark');
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+  }, []);
 
   // User Auth State - Starts completely empty until real user signs in
   const [user, setUser] = useState<UserProfile | null>(() => {
@@ -158,7 +135,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             role: assignedRole,
             bio: existingProfile?.bio || 'Manhwa24 reader',
             joinedDate: existingProfile?.joinedDate || new Date().toLocaleDateString(),
-            themePreference: existingProfile?.themePreference || theme,
             readerDefaultMode: existingProfile?.readerDefaultMode || 'webtoon',
             readerFitMode: existingProfile?.readerFitMode || 'width',
             readerDarkTrueBlack: existingProfile?.readerDarkTrueBlack || false,
@@ -203,7 +179,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role: role as any,
       bio: 'Manhwa24 reader',
       joinedDate: 'Just now',
-      themePreference: theme,
       readerDefaultMode: 'webtoon',
       readerFitMode: 'width',
       readerDarkTrueBlack: false,
@@ -235,13 +210,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           role: role,
           bio: existingDoc?.bio || 'Manhwa24 reader',
           joinedDate: existingDoc?.joinedDate || new Date().toLocaleDateString(),
-          themePreference: theme,
           readerDefaultMode: 'webtoon',
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
           ageConfirmedAt: existingDoc?.ageConfirmedAt,
           strikes: existingDoc?.strikes || 0,
+          approvedAdultChapters: existingDoc?.approvedAdultChapters || 0,
           defaultPenName: existingDoc?.defaultPenName || '',
         };
 
@@ -281,13 +256,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           role: role,
           bio: existingDoc?.bio || 'Manhwa24 reader',
           joinedDate: existingDoc?.joinedDate || new Date().toLocaleDateString(),
-          themePreference: theme,
           readerDefaultMode: 'webtoon',
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
           ageConfirmedAt: existingDoc?.ageConfirmedAt,
           strikes: existingDoc?.strikes || 0,
+          approvedAdultChapters: existingDoc?.approvedAdultChapters || 0,
           defaultPenName: existingDoc?.defaultPenName || '',
         };
 
@@ -323,7 +298,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           role: 'user',
           bio: 'Manhwa24 member',
           joinedDate: new Date().toLocaleDateString(),
-          themePreference: theme,
           readerDefaultMode: 'webtoon',
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
@@ -629,14 +603,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // iOS Guide Modal
-  const [iosGuideOpen, setIosGuideOpen] = useState(false);
-
   return (
     <AppContext.Provider
       value={{
-        theme,
-        toggleTheme,
         user,
         login,
         loginWithGoogle,
@@ -673,8 +642,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toasts,
         showToast,
         dismissToast,
-        iosGuideOpen,
-        setIosGuideOpen,
       }}
     >
       {children}

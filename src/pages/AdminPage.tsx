@@ -19,6 +19,7 @@ import {
   dbGetReports,
   dbUpdateReport,
   dbAddUserStrike,
+  dbIncrementApprovedAdultChapters,
 } from '../services/db';
 import { uploadMediaFile, isFirebaseConfigured } from '../firebase';
 import { aiWriter, hasGeminiApiKey, saveAdminGeminiKey } from '../services/aiWriter';
@@ -330,6 +331,9 @@ export const AdminPage: React.FC = () => {
           : {}),
       });
       const chapters = await dbGetChapters(story.id, true);
+      const newlyApprovedAdultChapters = decision === 'published' && story.contentRating === '18+'
+        ? chapters.filter((chapter) => chapter.approvalStatus !== 'published').length
+        : 0;
       await Promise.all(
         chapters.map((chapter) =>
           dbUpdateChapter(chapter.id, {
@@ -338,6 +342,9 @@ export const AdminPage: React.FC = () => {
           })
         )
       );
+      if (newlyApprovedAdultChapters && story.authorId) {
+        await Promise.all(Array.from({ length: newlyApprovedAdultChapters }, () => dbIncrementApprovedAdultChapters(story.authorId!)));
+      }
       showToast(decision === 'published' ? 'Story Published' : 'Story Rejected', decision === 'published' ? 'The story is now visible to readers.' : 'The writer can see the rejection reason in their dashboard.', decision === 'published' ? 'success' : 'info');
       await loadData();
     } catch {
@@ -1025,15 +1032,18 @@ export const AdminPage: React.FC = () => {
                       <td className="p-3.5">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            ch.isDraft
+                            ch.approvalStatus === 'pending'
+                              ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                              : ch.isDraft
                               ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                               : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                           }`}
                         >
-                          {ch.isDraft ? 'Draft' : 'Published'}
+                          {ch.approvalStatus === 'pending' ? 'Pending approval' : ch.isDraft ? 'Draft' : 'Published'}
                         </span>
                       </td>
                       <td className="p-3.5 text-right space-x-2">
+                        {ch.approvalStatus === 'pending' && <button onClick={async () => { await dbUpdateChapter(ch.id, { approvalStatus: 'published', isDraft: false }); const parent = seriesList.find((item) => item.id === ch.seriesId); if (parent?.contentRating === '18+' && parent.authorId) await dbIncrementApprovedAdultChapters(parent.authorId); await loadData(); showToast('Chapter approved', 'The chapter is now published.', 'success'); }} className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-400">Approve</button>}
                         <button
                           onClick={() => {
                             setEditingChapter(ch);
@@ -1573,11 +1583,11 @@ export const AdminPage: React.FC = () => {
       {/* 7. USERS & ROLES TAB */}
       {activeTab === 'reports' && (
         <div className="space-y-3 animate-in fade-in">
-          {reportsList.length === 0 ? <div className="p-8 text-center text-xs text-[#A79FC0]">No reports yet.</div> : reportsList.map((report) => {
+          {reportsList.length === 0 ? <div className="p-8 text-center text-xs text-[#A79FC0]">No reports yet.</div> : reportsList.slice().sort((a, b) => Number(b.status === 'open') - Number(a.status === 'open')).map((report) => {
             const story = seriesList.find((item) => item.id === report.seriesId);
             return <div key={report.id} className="p-4 rounded-2xl bg-[#171122] border border-[#2C2340] flex flex-col gap-3">
-              <div><p className="font-bold text-sm">{report.reason}</p><p className="text-[11px] text-[#A79FC0]">{story?.title || report.seriesId} · {report.createdAt}</p>{report.message && <p className="text-xs mt-2 text-[#A79FC0]">{report.message}</p>}</div>
-              <div className="flex flex-wrap gap-2"><button onClick={async () => { await dbUpdateReport(report.id, { status: 'dismissed' }); setReportsList((items) => items.map((item) => item.id === report.id ? { ...item, status: 'dismissed' } : item)); }} className="px-3 py-2 rounded-lg bg-[#2C2340] text-xs font-bold">Dismiss</button><button onClick={async () => { if (story) await dbUpdateSeries(story.id, { approvalStatus: 'rejected', isDraft: true }); await dbUpdateReport(report.id, { status: 'unpublished' }); showToast('Content unpublished', 'The reported series is no longer public.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Unpublish content</button>{story?.authorId && <><button onClick={async () => { await dbAddUserStrike(story.authorId!); showToast('Strike added', 'The author strike count was updated.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-[#FF9F1C]/15 text-[#FF9F1C] text-xs font-bold">Add strike</button><button onClick={async () => { await dbToggleBanUser(story.authorId!, true); showToast('Author banned', 'The author can no longer upload.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Ban author</button></>}</div>
+              <div><p className="font-bold text-sm">{report.reason} {report.status === 'open' && (report.chapterId || story?.approvalStatus === 'under-review') && <span className="text-red-400">· Under review</span>}</p><p className="text-[11px] text-[#A79FC0]">{story?.title || report.seriesId}{report.chapterId ? ` · Chapter ${report.chapterId}` : ''} · {report.createdAt}</p>{report.message && <p className="text-xs mt-2 text-[#A79FC0]">{report.message}</p>}</div>
+              <div className="flex flex-wrap gap-2"><button onClick={async () => { await dbUpdateReport(report.id, { status: 'dismissed' }); setReportsList((items) => items.map((item) => item.id === report.id ? { ...item, status: 'dismissed' } : item)); }} className="px-3 py-2 rounded-lg bg-[#2C2340] text-xs font-bold">Dismiss</button><button onClick={async () => { if (report.chapterId) await dbDeleteChapter(report.chapterId); else if (story) await dbUpdateSeries(story.id, { approvalStatus: 'rejected', isDraft: true }); await dbUpdateReport(report.id, { status: 'unpublished' }); showToast('Content deleted', 'The reported content is no longer public.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Delete content</button>{report.status === 'open' && (report.chapterId || story?.approvalStatus === 'under-review') && <button onClick={async () => { if (report.chapterId) await dbUpdateChapter(report.chapterId, { approvalStatus: 'published', isDraft: false }); else if (story) await dbUpdateSeries(story.id, { approvalStatus: 'published', isDraft: false }); await dbUpdateReport(report.id, { status: 'dismissed' }); await loadData(); }} className="px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-bold">Restore content</button>}{story?.authorId && <><button onClick={async () => { await dbAddUserStrike(story.authorId!); showToast('Strike added', 'The author strike count was updated.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-[#FF9F1C]/15 text-[#FF9F1C] text-xs font-bold">Add strike</button><button onClick={async () => { await dbToggleBanUser(story.authorId!, true); showToast('Author banned', 'The author can no longer upload.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Ban author</button></>}</div>
             </div>;
           })}
         </div>

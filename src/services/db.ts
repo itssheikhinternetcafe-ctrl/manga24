@@ -275,7 +275,7 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
           createdAt: _createdAt,
           ...writerSeries
         } = newSeries;
-        await setDoc(doc(db, 'series', id), { ...writerSeries, approvalStatus: 'pending', createdAt: serverTimestamp() });
+        await setDoc(doc(db, 'series', id), { ...writerSeries, createdAt: serverTimestamp() });
       } else {
         await setDoc(doc(db, 'series', id), newSeries);
       }
@@ -312,6 +312,14 @@ export async function dbCreateReport(data: { reporterId?: string; seriesId: stri
   if (isFirebaseConfigured() && db) await setDoc(doc(db, 'reports', report.id), report);
   const reports = getLocal<ContentReport[]>(STORAGE_KEYS.REPORTS, []);
   setLocal(STORAGE_KEYS.REPORTS, [report, ...reports]);
+  const targetReports = (await dbGetReports()).filter((item) => item.status === 'open' && item.seriesId === report.seriesId && item.chapterId === report.chapterId && item.reporterId);
+  if (new Set(targetReports.map((item) => item.reporterId)).size >= 3) {
+    if (report.chapterId) {
+      await dbUpdateChapter(report.chapterId, { approvalStatus: 'under-review', isDraft: true });
+    } else {
+      await dbUpdateSeries(report.seriesId, { approvalStatus: 'under-review', isDraft: true });
+    }
+  }
   return report;
 }
 
@@ -333,6 +341,12 @@ export async function dbAddUserStrike(userId: string): Promise<void> {
   if (isFirebaseConfigured() && db) await updateDoc(doc(db, 'users', userId), { strikes: increment(1) });
   const users = getLocal<UserProfile[]>(STORAGE_KEYS.USERS, []);
   setLocal(STORAGE_KEYS.USERS, users.map((user) => user.id === userId ? { ...user, strikes: (user.strikes || 0) + 1 } : user));
+}
+
+export async function dbIncrementApprovedAdultChapters(userId: string): Promise<void> {
+  if (isFirebaseConfigured() && db) await updateDoc(doc(db, 'users', userId), { approvedAdultChapters: increment(1) });
+  const users = getLocal<UserProfile[]>(STORAGE_KEYS.USERS, []);
+  setLocal(STORAGE_KEYS.USERS, users.map((user) => user.id === userId ? { ...user, approvedAdultChapters: (user.approvedAdultChapters || 0) + 1 } : user));
 }
 
 export async function dbUpdateSeries(id: string, updates: Partial<Series>): Promise<Series | null> {

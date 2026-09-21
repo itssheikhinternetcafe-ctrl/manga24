@@ -27,6 +27,17 @@ service cloud.firestore {
       );
     }
 
+    function hasAcceptedDeclarations(data) {
+      return data.get('uploadDeclarations', {}).get('originalCreator', false) == true &&
+        data.get('uploadDeclarations', {}).get('adultCharacters', false) == true &&
+        data.get('uploadDeclarations', {}).get('noRealPeople', false) == true &&
+        data.get('uploadDeclarations', {}).get('acceptsPolicies', false) == true;
+    }
+
+    function isTrustedAdultWriter() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('approvedAdultChapters', 0) >= 2;
+    }
+
     // Series collection: published stories are public; authors can see their own workflow states.
     match /series/{seriesId} {
       allow read: if resource.data.approvalStatus == 'published' || isAdmin() ||
@@ -35,6 +46,10 @@ service cloud.firestore {
         isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid &&
         request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        (request.resource.data.approvalStatus != 'published' ||
+          (hasAcceptedDeclarations(request.resource.data) &&
+            (request.resource.data.contentRating in ['safe', '16+'] ||
+              (request.resource.data.contentRating == '18+' && isTrustedAdultWriter())))) &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) != true &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('strikes', 0) < 3 &&
@@ -54,10 +69,14 @@ service cloud.firestore {
         request.resource.data.authorId == request.auth.uid &&
         resource.data.approvalStatus != 'rejected' &&
         request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        (request.resource.data.approvalStatus != 'published' ||
+          (hasAcceptedDeclarations(request.resource.data) &&
+            (request.resource.data.contentRating in ['safe', '16+'] ||
+              (request.resource.data.contentRating == '18+' && isTrustedAdultWriter())))) &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'featured', 'isFeatured', 'isTrending', 'isEditorPick',
-          'views', 'followersCount', 'rating', 'ratingCount', 'createdAt'
+          'views', 'followersCount', 'rating', 'ratingCount', 'createdAt', 'approvedAdultChapters', 'strikes', 'isBanned', 'role'
         ])
       ) || (
         resource.data.approvalStatus == 'published' &&
@@ -88,8 +107,10 @@ service cloud.firestore {
         get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.authorId == request.auth.uid &&
         get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.approvalStatus != 'rejected' &&
         request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'published'] &&
-        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft')
+        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        (request.resource.data.approvalStatus != 'published' ||
+          (get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.contentRating in ['safe', '16+'] || isTrustedAdultWriter())) &&
+        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft' || request.resource.data.approvalStatus == 'pending')
       );
       allow update: if isAdmin() || (
         isAuthenticated() &&
@@ -97,8 +118,10 @@ service cloud.firestore {
         request.resource.data.seriesId == resource.data.seriesId &&
         get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.approvalStatus != 'rejected' &&
         request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'published'] &&
-        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft')
+        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        (request.resource.data.approvalStatus != 'published' ||
+          (get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.contentRating in ['safe', '16+'] || isTrustedAdultWriter())) &&
+        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft' || request.resource.data.approvalStatus == 'pending')
       );
       allow delete: if isAdmin();
     }
@@ -114,6 +137,7 @@ service cloud.firestore {
         request.resource.data.role == resource.data.role &&
         request.resource.data.get('isBanned', false) == resource.data.get('isBanned', false) &&
         request.resource.data.get('strikes', 0) == resource.data.get('strikes', 0)
+        && request.resource.data.get('approvedAdultChapters', 0) == resource.data.get('approvedAdultChapters', 0)
       );
       allow delete: if isAdmin();
     }

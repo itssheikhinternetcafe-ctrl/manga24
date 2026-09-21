@@ -35,10 +35,10 @@ export const UploadRequestPage: React.FC = () => {
           <Upload className="w-6 h-6" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black font-heading text-[#F5F1FF] light:text-[#1A1429]">
-          Content Upload & Scanlation Portal
+          Content Upload Portal
         </h1>
         <p className="text-xs sm:text-sm text-[#A79FC0] light:text-[#6E6288] max-w-lg mx-auto">
-          Share your translations, independent webtoons, or official scanlations with hundreds of thousands of daily readers.
+          Share your original webtoons or works you have permission to publish with readers.
         </p>
       </div>
 
@@ -47,14 +47,14 @@ export const UploadRequestPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-[#A79FC0] light:text-[#6E6288] mb-1 font-medium">
-                Scanlation Team / Creator Name
+                Creator or Publisher Name
               </label>
               <input
                 type="text"
                 required
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
-                placeholder="e.g. Asura Scans / Solo Artist"
+                placeholder="e.g. Studio Name / Solo Artist"
                 className="w-full p-2.5 rounded-xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3]"
               />
             </div>

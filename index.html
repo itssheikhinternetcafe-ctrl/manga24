@@ -17,13 +17,7 @@
     <link rel="canonical" href="https://manhwa24.xyz" />
     <meta name="twitter:image" content="/icon.svg" />
     <meta name="theme-color" content="#0E0A14" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Manhwa24" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <link rel="apple-touch-icon" href="/icon.svg" />
-    <link rel="manifest" href="/manifest.json" />
 
     <!-- Google Fonts: Sora (headings), Inter (body), JetBrains Mono (meta/code) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -51,13 +45,6 @@
   <body class="bg-[#0E0A14] text-[#F5F1FF] font-sans antialiased selection:bg-[#FF4D6D]/30 selection:text-[#FF9F1C] min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
-      }
-    </script>
   </body>
 </html>
 

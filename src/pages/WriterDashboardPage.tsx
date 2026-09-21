@@ -10,7 +10,7 @@ import {
   dbUpdateSeries,
 } from "../services/db";
 import { uploadMediaFile } from "../firebase";
-import { Chapter, MangaType, Series, StoryApprovalStatus } from "../types";
+import { Chapter, ContentRating, MangaType, Series, StoryApprovalStatus, UploadDeclarations } from "../types";
 import {
   BookOpen,
   Check,
@@ -96,6 +96,8 @@ export const WriterDashboardPage: React.FC = () => {
     chapterTitle: "",
     pages: [] as string[],
     textContent: "",
+    contentRating: "safe" as ContentRating,
+    declarations: { originalCreator: false, adultCharacters: false, noRealPeople: false, acceptsPolicies: false, acceptedAt: "" } as UploadDeclarations,
   });
 
   const loadStories = async () => {
@@ -165,6 +167,8 @@ export const WriterDashboardPage: React.FC = () => {
       chapterTitle: "",
       pages: [],
       textContent: "",
+      contentRating: "safe",
+      declarations: { originalCreator: false, adultCharacters: false, noRealPeople: false, acceptsPolicies: false, acceptedAt: "" },
     });
     setView("new");
   };
@@ -269,6 +273,10 @@ export const WriterDashboardPage: React.FC = () => {
       );
       return;
     }
+    if (approvalStatus === "published" && !Object.values(form.declarations).slice(0, 4).every(Boolean)) {
+      setError("Please accept all four upload declarations before publishing.");
+      return;
+    }
     setSaving(true);
     try {
       const story = await dbCreateSeries({
@@ -282,8 +290,10 @@ export const WriterDashboardPage: React.FC = () => {
         authorId: user.id,
         authorName: author,
         creatorId: user.id,
-        approvalStatus: approvalStatus === "published" ? "published" : "draft",
-        isDraft: approvalStatus !== "published",
+        contentRating: form.contentRating,
+        uploadDeclarations: { ...form.declarations, acceptedAt: new Date().toISOString() },
+        approvalStatus: approvalStatus === "published" && (form.contentRating !== "18+" || (user.approvedAdultChapters || 0) >= 2) ? "published" : approvalStatus === "published" ? "pending" : "draft",
+        isDraft: approvalStatus !== "published" || (form.contentRating === "18+" && (user.approvedAdultChapters || 0) < 2),
       });
       await dbCreateChapter({
         seriesId: story.id,
@@ -291,8 +301,8 @@ export const WriterDashboardPage: React.FC = () => {
         title: cleanName(form.chapterTitle) || "Chapter 1",
         pages: form.type === "Novel" ? [] : form.pages,
         textContent: form.type === "Novel" ? form.textContent : "",
-        isDraft: approvalStatus !== "published",
-        approvalStatus: approvalStatus === "published" ? "published" : "draft",
+        isDraft: approvalStatus !== "published" || (form.contentRating === "18+" && (user.approvedAdultChapters || 0) < 2),
+        approvalStatus: approvalStatus === "published" && (form.contentRating !== "18+" || (user.approvedAdultChapters || 0) >= 2) ? "published" : approvalStatus === "published" ? "pending" : "draft",
         creatorId: user.id,
         authorId: user.id,
         authorName: author,
@@ -335,8 +345,8 @@ export const WriterDashboardPage: React.FC = () => {
         title: cleanName(form.chapterTitle) || `Chapter ${form.number}`,
         pages: form.type === "Novel" ? [] : form.pages,
         textContent: form.type === "Novel" ? form.textContent : "",
-        isDraft: !publish,
-        approvalStatus: publish ? ("published" as const) : ("draft" as const),
+        isDraft: !publish || (selectedStory.contentRating === "18+" && (user.approvedAdultChapters || 0) < 2),
+        approvalStatus: publish && (selectedStory.contentRating !== "18+" || (user.approvedAdultChapters || 0) >= 2) ? ("published" as const) : publish ? ("pending" as const) : ("draft" as const),
         creatorId: user.id,
         authorId: user.id,
         authorName: selectedStory.author,
@@ -768,6 +778,14 @@ const StoryForm: React.FC<FormProps> = ({
           </select>
         </div>
         <div>
+          <label className="text-xs font-bold block mb-1.5">Content rating</label>
+          <select value={form.contentRating} onChange={(event) => updateForm("contentRating", event.target.value)} className="writer-input">
+            <option value="safe">Safe</option>
+            <option value="16+">16+</option>
+            <option value="18+">18+</option>
+          </select>
+        </div>
+        <div>
           <label className="text-xs font-bold block mb-1.5">Genres</label>
           <div className="flex flex-wrap gap-2">
             {WRITER_GENRES.map((genre) => (
@@ -795,6 +813,11 @@ const StoryForm: React.FC<FormProps> = ({
           onChange={(value) => updateForm("description", value)}
           multiline
         />
+        <div className="space-y-2 text-[11px] text-[#A79FC0]">
+          {(["originalCreator", "adultCharacters", "noRealPeople", "acceptsPolicies"] as const).map((key) => (
+            <label key={key} className="flex items-start gap-2"><input type="checkbox" checked={form.declarations[key]} onChange={(event) => updateForm("declarations", { ...form.declarations, [key]: event.target.checked })} /><span>I accept the required {key === "originalCreator" ? "originality" : key === "adultCharacters" ? "adult characters" : key === "noRealPeople" ? "no real people" : "policy"} declaration.</span></label>
+          ))}
+        </div>
         <ChapterEditor
           form={form}
           updateForm={updateForm}

@@ -535,7 +535,7 @@ export const SeriesDetailPage: React.FC = () => {
                             </Link>
 
                             <div className="flex items-center gap-2 text-[11px] text-[#A79FC0] light:text-[#6E6288] font-mono-meta mt-0.5">
-                              <span>{ch.scanlationGroup}</span>
+                              <span>{ch.authorName || 'Original Creator'}</span>
                               <span>•</span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
@@ -551,7 +551,7 @@ export const SeriesDetailPage: React.FC = () => {
                           </span>
 
                           <button
-                            onClick={() => showToast('Offline Download', `Chapter ${ch.chapterNumber} cached for offline PWA reading!`, 'success')}
+                            onClick={() => showToast('Download', `Chapter ${ch.chapterNumber} download requested.`, 'success')}
                             className="p-1.5 rounded-lg text-[#A79FC0] hover:text-white hover:bg-[#2C2340] light:hover:bg-[#E2D9F3] transition"
                             title="Download for offline"
                           >

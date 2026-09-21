@@ -5,7 +5,6 @@ import { Footer } from './Footer';
 import { MobileBottomNav } from './MobileBottomNav';
 import { ToastContainer } from './ToastContainer';
 import { AuthModal } from './AuthModal';
-import { PWAInstallModal } from './PWAInstallModal';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
@@ -26,7 +25,6 @@ export const Layout: React.FC = () => {
 
       <ToastContainer />
       <AuthModal />
-      <PWAInstallModal />
     </div>
   );
 };

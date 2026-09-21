@@ -43,7 +43,7 @@ export const LatestUpdatesGrid: React.FC<LatestUpdatesGridProps> = ({ seriesList
             <span className="w-2.5 h-2.5 rounded-full bg-[#FF4D6D] animate-ping" />
           </div>
           <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mt-0.5">
-            Updated in real-time by scanlation teams and community uploaders
+            Updated in real-time by creators and authorized publishers
           </p>
         </div>
 

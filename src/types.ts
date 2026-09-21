@@ -10,7 +10,7 @@ export const ALL_GENRES: string[] = [
 
 export type MangaStatus = 'Ongoing' | 'Completed' | 'Hiatus';
 export type PublicationStatus = MangaStatus;
-export type StoryApprovalStatus = 'draft' | 'pending' | 'published' | 'rejected';
+export type StoryApprovalStatus = 'draft' | 'pending' | 'published' | 'rejected' | 'under-review';
 
 export type Demographic = 'Shounen' | 'Seinen' | 'Shoujo' | 'Josei' | 'All Ages';
 
@@ -260,13 +260,13 @@ export interface UserProfile {
   isBanned?: boolean;
   bio: string;
   joinedDate: string;
-  themePreference: 'dark' | 'light';
   readerDefaultMode: ReadingMode;
   readerFitMode: FitMode;
   readerDarkTrueBlack: boolean;
   contentRatingFilter: 'all' | 'safe_only';
   ageConfirmedAt?: string;
   strikes?: number;
+  approvedAdultChapters?: number;
   defaultPenName?: string;
 }
 

@@ -4,12 +4,9 @@ import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
 import { Series } from '../types';
 import { NotificationsDropdown } from './NotificationsDropdown';
-import { PWAInstallButton } from './PWAInstallButton';
 import {
   Search,
   Compass,
-  Sun,
-  Moon,
   Bell,
   Menu,
   X,
@@ -27,8 +24,6 @@ import {
 
 export const Navbar: React.FC = () => {
   const {
-    theme,
-    toggleTheme,
     user,
     logout,
     setAuthModalOpen,
@@ -294,25 +289,6 @@ export const Navbar: React.FC = () => {
             </Link>
           )}
 
-          {/* In-App PWA Install */}
-          <div className="hidden lg:block">
-            <PWAInstallButton variant="nav" />
-          </div>
-
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl bg-[#171122] hover:bg-[#1F1830] light:bg-white light:hover:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3] text-[#F5F1FF] light:text-[#1A1429] transition shadow-sm"
-            aria-label="Toggle theme"
-            title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-[#FF9F1C]" />
-            ) : (
-              <Moon className="w-4 h-4 text-[#8B5CFF]" />
-            )}
-          </button>
-
           {/* Notifications Trigger */}
           <div className="relative">
             <button
@@ -510,9 +486,6 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          <div className="pt-2 border-t border-[#2C2340] light:border-[#E2D9F3]">
-            <PWAInstallButton variant="compact" className="w-full justify-center py-2.5" />
-          </div>
         </div>
       )}
     </header>
