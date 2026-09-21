@@ -162,6 +162,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             readerFitMode: existingProfile?.readerFitMode || 'width',
             readerDarkTrueBlack: existingProfile?.readerDarkTrueBlack || false,
             contentRatingFilter: existingProfile?.contentRatingFilter || 'all',
+            defaultPenName: existingProfile?.defaultPenName || '',
           };
 
           setUser(profile);
@@ -204,6 +205,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       readerFitMode: 'width',
       readerDarkTrueBlack: false,
       contentRatingFilter: 'all',
+      defaultPenName: '',
     };
     setUser(newUser);
     localStorage.setItem('manga24_user', JSON.stringify(newUser));
@@ -235,6 +237,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
+          defaultPenName: existingDoc?.defaultPenName || '',
         };
 
         setUser(profile);
@@ -278,6 +281,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
+          defaultPenName: existingDoc?.defaultPenName || '',
         };
 
         setUser(profile);
@@ -317,6 +321,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
+          defaultPenName: '',
         };
 
         setUser(profile);

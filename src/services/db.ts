@@ -438,9 +438,9 @@ export async function dbCreateChapter(chapterData: Partial<Chapter>): Promise<Ch
   const series = await dbGetSeriesById(newChapter.seriesId);
   if (series) {
     const allSeriesChapters = await dbGetChapters(newChapter.seriesId, false);
-    const maxNum = Math.max(series.latestChapterNumber || 0, newChapter.isDraft ? 0 : num);
+    const maxNum = allSeriesChapters.reduce((max, chapter) => Math.max(max, chapter.number), 0);
     await dbUpdateSeries(series.id, {
-      totalChapters: allSeriesChapters.length + (newChapter.isDraft ? 0 : 1),
+      totalChapters: allSeriesChapters.length,
       latestChapterNumber: maxNum,
       latestUpdateDate: now.split('T')[0],
     });
@@ -479,6 +479,16 @@ export async function dbUpdateChapter(id: string, updates: Partial<Chapter>): Pr
     STORAGE_KEYS.CHAPTERS,
     [updated, ...local.filter((c) => c.id !== id)]
   );
+
+  const publishedChapters = await dbGetChapters(updated.seriesId, false);
+  const series = await dbGetSeriesById(updated.seriesId);
+  if (series) {
+    await dbUpdateSeries(series.id, {
+      totalChapters: publishedChapters.length,
+      latestChapterNumber: publishedChapters.reduce((max, chapter) => Math.max(max, chapter.number), 0),
+      latestUpdateDate: new Date().toISOString().split('T')[0],
+    });
+  }
 
   return updated;
 }
@@ -923,6 +933,7 @@ function normalizeSeries(s: Series): Series {
   s.bannerUrl = s.bannerUrl || s.bannerImage || '';
   s.bannerImage = s.bannerUrl;
   s.author = s.author || (s.authors?.[0]) || 'Unknown';
+  s.authorName = s.authorName || s.author;
   s.authors = s.authors?.length ? s.authors : [s.author];
   s.artist = s.artist || (s.artists?.[0]) || '';
   s.artists = s.artists?.length ? s.artists : (s.artist ? [s.artist] : []);

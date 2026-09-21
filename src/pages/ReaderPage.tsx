@@ -205,7 +205,7 @@ export const ReaderPage: React.FC = () => {
   };
 
   const currentChapter = fetchedChapter || chapters.find((c) => c.chapterNumber === currentChNum);
-  const nextChapterAvailable = currentChNum < (series?.totalChapters || 1);
+  const nextChapterAvailable = chapters.some((chapter) => (chapter.chapterNumber || chapter.number) > currentChNum);
   const prevChapterAvailable = currentChNum > 1;
 
   // Reading progress percentage calculation

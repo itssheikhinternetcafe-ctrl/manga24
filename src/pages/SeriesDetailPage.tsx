@@ -402,11 +402,11 @@ export const SeriesDetailPage: React.FC = () => {
               <div className="mt-4 pt-3 border-t border-[#2C2340]/60 light:border-[#E2D9F3] grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                 <div>
                   <span className="text-[10px] text-[#A79FC0] light:text-[#6E6288] block">Author:</span>
-                  <span className="font-semibold text-[#F5F1FF] light:text-[#1A1429]">{(series.authors || []).join(', ') || 'Original Creator'}</span>
+                  <span className="font-semibold text-[#F5F1FF] light:text-[#1A1429]">{series.author || series.authorName || 'Original Creator'}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-[#A79FC0] light:text-[#6E6288] block">Artist:</span>
-                  <span className="font-semibold text-[#F5F1FF] light:text-[#1A1429]">{(series.artists || []).join(', ') || 'Original Artist'}</span>
+                  <span className="font-semibold text-[#F5F1FF] light:text-[#1A1429]">{series.artist || 'Original Artist'}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-[#A79FC0] light:text-[#6E6288] block">Serialization:</span>
@@ -420,7 +420,7 @@ export const SeriesDetailPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#2C2340]/60 light:border-[#E2D9F3]">
                 <div>
                   <h3 className="text-base font-bold font-heading text-[#F5F1FF] light:text-[#1A1429]">
-                    Chapters ({series.totalChapters})
+                    Chapters ({chapters.length || series.totalChapters || 0})
                   </h3>
                   <p className="text-[11px] text-[#A79FC0] light:text-[#6E6288]">
                     Available in Webtoon, Right-to-Left, and Left-to-Right reading modes

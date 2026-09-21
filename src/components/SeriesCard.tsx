@@ -133,7 +133,7 @@ export const SeriesCard: React.FC<SeriesCardProps> = ({
             {series.title}
           </Link>
           <p className="text-[11px] text-[#A79FC0] light:text-[#6E6288] line-clamp-1 mt-0.5">
-            {series.genres.slice(0, 2).join(' • ')}
+            By {series.author || series.authorName || 'Unknown Author'}
           </p>
         </div>
 

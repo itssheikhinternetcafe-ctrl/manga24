@@ -222,6 +222,7 @@ export interface UserProfile {
   readerFitMode: FitMode;
   readerDarkTrueBlack: boolean;
   contentRatingFilter: 'all' | 'safe_only';
+  defaultPenName?: string;
 }
 
 export interface SiteSettings {
