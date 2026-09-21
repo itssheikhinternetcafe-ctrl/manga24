@@ -14,7 +14,7 @@ export type StoryApprovalStatus = 'draft' | 'pending' | 'published' | 'rejected'
 
 export type Demographic = 'Shounen' | 'Seinen' | 'Shoujo' | 'Josei' | 'All Ages';
 
-export type ContentRating = 'Safe' | 'Suggestive' | 'Mature';
+export type ContentRating = 'safe' | '16+' | '18+';
 
 export type ReadingStatus = 'Reading' | 'Plan to Read' | 'Completed' | 'Dropped';
 
@@ -101,6 +101,48 @@ export interface Series {
   approvalStatus?: StoryApprovalStatus | 'approved';
   rejectionReason?: string;
   chapters?: Chapter[];
+  uploadedBy?: string;
+  uploadedAt?: string;
+  uploadDeclarations?: UploadDeclarations;
+}
+
+export interface UploadDeclarations {
+  originalCreator: boolean;
+  adultCharacters: boolean;
+  noRealPeople: boolean;
+  acceptsPolicies: boolean;
+  acceptedAt: string;
+}
+
+export interface UploadSubmission {
+  id: string;
+  groupName: string;
+  contactEmail: string;
+  seriesTitle: string;
+  seriesType: MangaType;
+  contentRating: ContentRating;
+  sampleLink: string;
+  notes: string;
+  uploadedBy?: string;
+  uploadedAt: string;
+  authorId?: string;
+  seriesId?: string;
+  chapterId?: string;
+  declarations: UploadDeclarations;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+export type ReportReason = 'Copyright/stolen' | 'Minor/child content' | 'Non-consensual/real person' | 'Wrong content rating' | 'Other';
+
+export interface ContentReport {
+  id: string;
+  reporterId?: string;
+  seriesId: string;
+  chapterId?: string;
+  reason: ReportReason;
+  message: string;
+  createdAt: string;
+  status: 'open' | 'dismissed' | 'unpublished';
 }
 
 export interface UserComment {
@@ -194,6 +236,7 @@ export interface FilterOptions {
   viewMode?: 'grid' | 'list';
   page: number;
   limit: number;
+  includeAdult?: boolean;
 }
 
 export interface NotificationItem {
@@ -222,6 +265,8 @@ export interface UserProfile {
   readerFitMode: FitMode;
   readerDarkTrueBlack: boolean;
   contentRatingFilter: 'all' | 'safe_only';
+  ageConfirmedAt?: string;
+  strikes?: number;
   defaultPenName?: string;
 }
 

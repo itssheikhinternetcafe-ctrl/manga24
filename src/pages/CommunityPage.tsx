@@ -85,7 +85,7 @@ export const CommunityPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black font-heading text-[#F5F1FF] light:text-[#1A1429]">
-            Manga24 Community Hub
+            Manhwa24 Community Hub
           </h1>
           <p className="text-xs sm:text-sm text-[#A79FC0] light:text-[#6E6288] mt-1">
             Connect with 50,000+ manga readers, scanlators, and webtoon creators 24/7
@@ -281,7 +281,7 @@ export const CommunityPage: React.FC = () => {
                 No scanlation team data yet
               </p>
               <p className="text-[11px] text-[#A79FC0] light:text-[#6E6288] max-w-sm mx-auto mt-1">
-                As creators and scanlation teams publish chapters on Manga24, real-time release rankings and leaderboards will appear here.
+                As creators and scanlation teams publish chapters on Manhwa24, real-time release rankings and leaderboards will appear here.
               </p>
             </div>
           </div>

@@ -35,7 +35,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
       <button
         onClick={handleClick}
         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#1F1830] text-[#FF9F1C] hover:bg-[#2C2340] light:bg-[#F3EEFC] light:hover:bg-[#E2D9F3] border border-[#2C2340] light:border-[#E2D9F3] transition ${className}`}
-        title="Install Manga24 App"
+            title="Install Manhwa24 App"
       >
         <Download className="w-3.5 h-3.5" />
         <span>Install App</span>
@@ -52,7 +52,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             <Download className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold font-heading">Install Manga24 PWA</h4>
+            <h4 className="text-sm font-bold font-heading">Install Manhwa24 PWA</h4>
             <p className="text-[11px] text-[#A79FC0] light:text-[#6E6288]">Read offline 24/7 on any device</p>
           </div>
         </div>

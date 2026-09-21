@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { dbCreateSeries, dbCreateChapter } from '../services/db';
 import { uploadMediaFile } from '../firebase';
-import { MangaType, ALL_GENRES } from '../types';
+import { ContentRating, MangaType, ALL_GENRES, UploadDeclarations } from '../types';
 import { Upload, Sparkles, CheckCircle2, ShieldAlert, ArrowRight, BookOpen, FileText } from 'lucide-react';
 
 export const CreatorUploadPage: React.FC = () => {
@@ -18,6 +18,14 @@ export const CreatorUploadPage: React.FC = () => {
   const [type, setType] = useState<MangaType>('Webtoon');
   const [selectedGenres, setSelectedGenres] = useState<string[]>(['Fantasy', 'Action']);
   const [coverUrl, setCoverUrl] = useState('');
+  const [contentRating, setContentRating] = useState<ContentRating>('safe');
+  const [declarations, setDeclarations] = useState<UploadDeclarations>({
+    originalCreator: false,
+    adultCharacters: false,
+    noRealPeople: false,
+    acceptsPolicies: false,
+    acceptedAt: '',
+  });
   const [uploadingCover, setUploadingCover] = useState(false);
 
   // Chapter Form
@@ -46,6 +54,10 @@ export const CreatorUploadPage: React.FC = () => {
   const handleSeriesSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    if (user?.isBanned || (user?.strikes || 0) >= 3) {
+      showToast('Upload Disabled', 'This account is banned from uploading.', 'error');
+      return;
+    }
     setSubmitting(true);
     try {
       await dbCreateSeries({
@@ -53,11 +65,15 @@ export const CreatorUploadPage: React.FC = () => {
         synopsis: synopsis.trim(),
         type,
         genres: selectedGenres,
+        contentRating,
         coverUrl: coverUrl || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80',
         author: user?.username || 'Creator',
         creatorId: user?.id,
         approvalStatus: user?.role === 'admin' ? 'approved' : 'pending',
         isDraft: user?.role !== 'admin',
+        uploadedBy: user?.id,
+        uploadedAt: new Date().toISOString(),
+        uploadDeclarations: { ...declarations, acceptedAt: new Date().toISOString() },
       });
       setSuccessMessage(
         user?.role === 'admin'
@@ -67,6 +83,8 @@ export const CreatorUploadPage: React.FC = () => {
       setTitle('');
       setSynopsis('');
       setCoverUrl('');
+      setContentRating('safe');
+      setDeclarations({ originalCreator: false, adultCharacters: false, noRealPeople: false, acceptsPolicies: false, acceptedAt: '' });
       showToast('Submitted', 'Series submitted successfully.', 'success');
     } catch {
       showToast('Error', 'Submission failed.', 'error');
@@ -83,7 +101,7 @@ export const CreatorUploadPage: React.FC = () => {
             <Sparkles className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-black font-heading text-[#F5F1FF] light:text-[#1A1429] mb-2">
-            Manga24 Creator Portal
+            Manhwa24 Creator Portal
           </h2>
           <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mb-6 leading-relaxed">
             Are you an indie mangaka, webtoon illustrator, or serialized web novel author? Join our approved creator community to publish your original work to thousands of readers.
@@ -137,6 +155,15 @@ export const CreatorUploadPage: React.FC = () => {
                 placeholder="e.g. Chronicles of the Silver Spire"
                 className="w-full p-2.5 rounded-xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3] text-white light:text-[#1A1429]"
               />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-[#A79FC0] mb-1">Content Rating *</label>
+              <select required value={contentRating} onChange={(e) => setContentRating(e.target.value as ContentRating)} className="w-full p-2.5 rounded-xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3] text-white light:text-[#1A1429]">
+                <option value="safe">Safe</option>
+                <option value="16+">16+</option>
+                <option value="18+">18+</option>
+              </select>
             </div>
             <div>
               <label className="block font-semibold text-[#A79FC0] mb-1">Format</label>
@@ -210,11 +237,16 @@ export const CreatorUploadPage: React.FC = () => {
             </label>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#0E0A14] border border-[#2C2340] text-[11px] text-[#A79FC0] flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-[#FF9F1C] shrink-0" />
-            <span>
-              By submitting, you certify that you own all copyrights to this story and artwork, and grant Manga24 non-exclusive distribution permission.
-            </span>
+          <div className="p-3 rounded-xl bg-[#0E0A14] border border-[#2C2340] text-[11px] text-[#A79FC0] space-y-2">
+            <div className="flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-[#FF9F1C] shrink-0" /><span>Required upload declarations</span></div>
+            {([
+              ['originalCreator', 'I am the original creator or I have written permission to publish this work.'],
+              ['adultCharacters', 'All characters shown in sexual or adult content are clearly adults (18+). No minors, no school-age looking characters in sexual content.'],
+              ['noRealPeople', 'This work has no real people, photos or deepfakes.'],
+              ['acceptsPolicies', 'I accept the Terms, Content Policy and DMCA policy.'],
+            ] as const).map(([key, label]) => (
+              <label key={key} className="flex items-start gap-2"><input required type="checkbox" checked={declarations[key]} onChange={(e) => setDeclarations((prev) => ({ ...prev, [key]: e.target.checked }))} /><span>{label}</span></label>
+            ))}
           </div>
 
           <button

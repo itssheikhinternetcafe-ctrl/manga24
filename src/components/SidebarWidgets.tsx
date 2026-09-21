@@ -59,7 +59,7 @@ export const SidebarWidgets: React.FC = () => {
             </div>
             <div>
               <h4 className="text-xs font-bold font-heading text-[#F5F1FF] light:text-[#1A1429]">
-                Manga24 Discord
+                Manhwa24 Discord
               </h4>
               <p className="text-[10px] text-[#A79FC0] light:text-[#6E6288]">
                 18,400+ online manga fans

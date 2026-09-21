@@ -95,14 +95,14 @@ export const LibraryPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `manga24-backup-${Date.now()}.json`;
+    a.download = `manhwa24-backup-${Date.now()}.json`;
     a.click();
     showToast('Export Complete', 'Library and history data downloaded as JSON.', 'success');
   };
 
   // Import mock restore
   const handleImportData = () => {
-    showToast('Import Ready', 'Select a Manga24 JSON backup to restore.', 'info');
+    showToast('Import Ready', 'Select a Manhwa24 JSON backup to restore.', 'info');
   };
 
   return (
@@ -404,7 +404,7 @@ export const LibraryPage: React.FC = () => {
               Reader & Application Preferences
             </h3>
             <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mt-0.5">
-              Customize your Manga24 experience across all devices
+              Customize your Manhwa24 experience across all devices
             </p>
           </div>
 
@@ -530,7 +530,7 @@ const EmptyLibraryState: React.FC<{ tabName: string }> = ({ tabName }) => {
         Your "{tabName}" is empty!
       </h3>
       <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mt-1 mb-5">
-        Explore 40+ original titles on Manga24 and bookmark your favorite series.
+        Explore available titles on Manhwa24 and bookmark your favorite series.
       </p>
       <Link
         to="/browse"

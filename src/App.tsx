@@ -14,6 +14,7 @@ import { AdminPage } from './pages/AdminPage';
 import { CreatorUploadPage } from './pages/CreatorUploadPage';
 import { WriterDashboardPage } from './pages/WriterDashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { TermsPage, PrivacyPage, ContentPolicyPage, CommunityGuidelinesPage } from './pages/LegalPages';
 
 export default function App() {
   return (
@@ -31,6 +32,10 @@ export default function App() {
             <Route path="creator-upload" element={<CreatorUploadPage />} />
             <Route path="writer" element={<WriterDashboardPage />} />
             <Route path="dmca" element={<DMCAPage />} />
+            <Route path="terms" element={<TermsPage />} />
+            <Route path="privacy" element={<PrivacyPage />} />
+            <Route path="content-policy" element={<ContentPolicyPage />} />
+            <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
             <Route path="upload-request" element={<UploadRequestPage />} />
             <Route path="404" element={<NotFoundPage />} />
             <Route path="*" element={<NotFoundPage />} />

@@ -111,7 +111,7 @@ export const Navbar: React.FC = () => {
         {/* Brand Logo & Wordmark */}
         <div className="flex items-center gap-3 shrink-0">
           <Link to="/" className="flex items-center gap-2 group">
-            {/* Manga24 Icon */}
+            {/* Manhwa24 Icon */}
             <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-gradient-brand flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
               <svg
                 viewBox="0 0 48 48"
@@ -142,7 +142,7 @@ export const Navbar: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center">
                 <span className="font-heading font-extrabold text-lg sm:text-xl tracking-tight text-[#F5F1FF] light:text-[#1A1429]">
-                  Manga<span className="text-gradient-brand">24</span>
+                  Manhwa<span className="text-gradient-brand">24</span>
                 </span>
                 <span className="ml-1 text-[10px] font-mono-meta px-1.5 py-0.5 rounded bg-[#FF4D6D]/15 text-[#FF4D6D] font-bold hidden md:inline-block">
                   .XYZ
@@ -184,7 +184,7 @@ export const Navbar: React.FC = () => {
                 setSearchOpen(true);
               }}
               onFocus={() => setSearchOpen(true)}
-              placeholder="Search 40+ original series, genres, authors..."
+              placeholder="Search series, genres, authors..."
               className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm bg-[#171122] text-[#F5F1FF] light:bg-white light:text-[#1A1429] border border-[#2C2340] light:border-[#E2D9F3] focus:outline-none focus:border-[#FF4D6D] transition shadow-inner placeholder:text-[#A79FC0]/60 light:placeholder:text-[#6E6288]/70"
             />
             <Search className="w-4 h-4 text-[#A79FC0] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />

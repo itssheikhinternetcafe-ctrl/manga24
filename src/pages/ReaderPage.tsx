@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Series, Chapter, ChapterPage } from '../types';
 import { useAppStore } from '../store/useAppStore';
+import { AgeGate, hasAgeConfirmation, isAdultRating, rememberAgeConfirmation } from '../components/ContentSafety';
+import { ReportButton } from '../components/ReportButton';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -40,6 +42,8 @@ export const ReaderPage: React.FC = () => {
     setDarkReaderMode,
     updateReadingProgress,
     showToast,
+    user,
+    updateProfile,
   } = useAppStore();
 
   const [series, setSeries] = useState<Series | null>(null);
@@ -51,6 +55,7 @@ export const ReaderPage: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [hasLikedChapter, setHasLikedChapter] = useState(false);
   const [chapterComment, setChapterComment] = useState('');
 
@@ -71,6 +76,9 @@ export const ReaderPage: React.FC = () => {
       try {
         const s = await api.getSeriesById(id);
         setSeries(s);
+        const allowed = !isAdultRating(s?.contentRating) || hasAgeConfirmation(user);
+        setAgeConfirmed(allowed);
+        if (!s || !allowed) return;
         const chList = await api.getChapters(id);
         setChapters(chList);
         const chData = await api.getChapter(id, currentChNum);
@@ -89,7 +97,23 @@ export const ReaderPage: React.FC = () => {
       }
     }
     loadData();
-  }, [id, currentChNum]);
+  }, [id, currentChNum, user, ageConfirmed]);
+
+  useEffect(() => {
+    if (!series || !isAdultRating(series.contentRating)) return;
+    const robots = document.querySelector('meta[name="robots"]') || document.createElement('meta');
+    robots.setAttribute('name', 'robots');
+    robots.setAttribute('content', 'noindex, nofollow');
+    document.head.appendChild(robots);
+    let tag: HTMLMetaElement | null = null;
+    if (ageConfirmed) {
+      tag = document.querySelector('meta[name="RATING"]') || document.createElement('meta');
+      tag.setAttribute('name', 'RATING');
+      tag.setAttribute('content', 'RTA-5042-1996-1400-1577-RTA');
+      document.head.appendChild(tag);
+    }
+    return () => { tag?.remove(); robots.remove(); };
+  }, [series, ageConfirmed]);
 
   // Track scroll position for continuous mode & auto-hide controls
   useEffect(() => {
@@ -204,6 +228,18 @@ export const ReaderPage: React.FC = () => {
     setChapterComment('');
   };
 
+  if (series && isAdultRating(series.contentRating) && !ageConfirmed) {
+    return (
+      <AgeGate
+        onLeave={() => navigate(`/series/${id}`)}
+        onConfirm={() => {
+          rememberAgeConfirmation(user, updateProfile);
+          setAgeConfirmed(true);
+        }}
+      />
+    );
+  }
+
   const currentChapter = fetchedChapter || chapters.find((c) => c.chapterNumber === currentChNum);
   const nextChapterAvailable = chapters.some((chapter) => (chapter.chapterNumber || chapter.number) > currentChNum);
   const prevChapterAvailable = currentChNum > 1;
@@ -259,6 +295,7 @@ export const ReaderPage: React.FC = () => {
 
           {/* Chapter Quick Jumper Dropdown */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {id && <ReportButton seriesId={id} chapterId={fetchedChapter?.id} />}
             <select
               value={currentChNum}
               onChange={(e) => goToChapter(parseInt(e.target.value, 10))}
@@ -878,7 +915,7 @@ const ComicPanelRenderer: React.FC<PanelRendererProps> = ({ page, seriesTitle, f
           opacity="0.6"
           textAnchor="end"
         >
-          {seriesTitle} • Page {page.pageNumber} • Manga24.xyz
+          {seriesTitle} • Page {page.pageNumber} • Manhwa24
         </text>
       </svg>
     </div>

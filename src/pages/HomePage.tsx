@@ -79,7 +79,7 @@ export const HomePage: React.FC = () => {
       {/* Trending Now Slider (Ranked #1 - #10) */}
       <HorizontalSlider
         title="Trending Right Now"
-        subtitle="Most read series in the past 24 hours on Manga24"
+        subtitle="Most read series in the past 24 hours on Manhwa24"
         badge="TOP 10"
         viewAllLink="/browse?sort=popular"
       >
@@ -124,7 +124,7 @@ export const HomePage: React.FC = () => {
 
       {/* Staff & Editor Picks Slider */}
       <HorizontalSlider
-        title="Manga24 Staff Recommendations"
+        title="Manhwa24 Staff Recommendations"
         subtitle="Hand-picked for exceptional art, pacing, and compelling storylines"
         badge="CURATED"
         viewAllLink="/browse?sort=rating"

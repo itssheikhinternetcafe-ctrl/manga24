@@ -75,7 +75,7 @@ export const AuthModal: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base font-bold font-heading">
-                {tab === 'login' ? 'Sign in to Manga24' : 'Join the Manga24 Community'}
+                {tab === 'login' ? 'Sign in to Manhwa24' : 'Join the Manhwa24 Community'}
               </h3>
               <p className="text-xs text-[#A79FC0] light:text-[#6E6288]">Read fast. Read free. Read 24/7.</p>
             </div>

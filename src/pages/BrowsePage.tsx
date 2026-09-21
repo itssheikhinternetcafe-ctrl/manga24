@@ -23,6 +23,9 @@ import { useAppStore } from '../store/useAppStore';
 export const BrowsePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { library, toggleBookmark } = useAppStore();
+  const [showAdult, setShowAdult] = useState(() => {
+    try { return localStorage.getItem('manga24_show_adult') === 'true'; } catch { return false; }
+  });
 
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [selectedTypes, setSelectedTypes] = useState<SeriesType[]>(() => {
@@ -83,6 +86,7 @@ export const BrowsePage: React.FC = () => {
           statuses: selectedStatuses,
           demographics: selectedDemographics,
           contentRatings: selectedRatings,
+          includeAdult: showAdult,
           genres: selectedGenres,
           year: selectedYear,
           sortBy,
@@ -116,7 +120,14 @@ export const BrowsePage: React.FC = () => {
     selectedYear,
     sortBy,
     page,
+    showAdult,
   ]);
+
+  const toggleAdultVisibility = (enabled: boolean) => {
+    setShowAdult(enabled);
+    try { localStorage.setItem('manga24_show_adult', String(enabled)); } catch {}
+    setPage(1);
+  };
 
   const toggleType = (t: SeriesType) => {
     setPage(1);
@@ -170,7 +181,7 @@ export const BrowsePage: React.FC = () => {
             Browse Catalog
           </h1>
           <p className="text-xs sm:text-sm text-[#A79FC0] light:text-[#6E6288] mt-1">
-            Explore 40+ original titles across manga, manhwa, manhua, and webtoons
+            Explore manga, manhwa, manhua, and webtoons across every available genre
           </p>
         </div>
 
@@ -371,6 +382,10 @@ export const BrowsePage: React.FC = () => {
                   ))}
                 </div>
               </div>
+              <label className="flex items-center gap-2 text-xs font-semibold text-[#F5F1FF] light:text-[#1A1429]">
+                <input type="checkbox" checked={showAdult} onChange={(e) => toggleAdultVisibility(e.target.checked)} />
+                Show 18+ content
+              </label>
 
               {/* Content Rating */}
               <div>
@@ -378,7 +393,7 @@ export const BrowsePage: React.FC = () => {
                   Content Rating
                 </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {(['Safe', 'Suggestive', 'Mature'] as ContentRating[]).map((r) => (
+                  {(['safe', '16+', '18+'] as ContentRating[]).map((r) => (
                     <button
                       key={r}
                       onClick={() =>

@@ -4,6 +4,9 @@ import { api } from '../services/api';
 import { Series, Chapter, UserComment, ReadingStatus } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { SeriesCard } from '../components/SeriesCard';
+import { AgeGate, hasAgeConfirmation, isAdultRating, rememberAgeConfirmation } from '../components/ContentSafety';
+import { SITE_NAME, SITE_URL } from '../config';
+import { ReportButton } from '../components/ReportButton';
 import {
   Star,
   Bookmark,
@@ -34,6 +37,8 @@ export const SeriesDetailPage: React.FC = () => {
     setSeriesRating,
     readingHistory,
     showToast,
+    user,
+    updateProfile,
   } = useAppStore();
 
   const [series, setSeries] = useState<Series | null>(null);
@@ -41,6 +46,7 @@ export const SeriesDetailPage: React.FC = () => {
   const [comments, setComments] = useState<UserComment[]>([]);
   const [relatedSeries, setRelatedSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   // UI States
   const [synopsisExpanded, setSynopsisExpanded] = useState(false);
@@ -65,6 +71,9 @@ export const SeriesDetailPage: React.FC = () => {
         const data = await api.getSeriesById(id);
         if (data) {
           setSeries(data);
+          const allowed = !isAdultRating(data.contentRating) || hasAgeConfirmation(user);
+          setAgeConfirmed(allowed);
+          if (!allowed) return;
           const chs = await api.getChapters(data.id);
           setChapters(chs);
           const cmts = await api.getComments(data.id);
@@ -84,7 +93,35 @@ export const SeriesDetailPage: React.FC = () => {
       }
     }
     loadSeriesData();
-  }, [id]);
+  }, [id, user, ageConfirmed]);
+
+  useEffect(() => {
+    if (!series) return;
+    const adult = isAdultRating(series.contentRating);
+    document.title = `${series.title} - Read on ${SITE_NAME}`;
+    const description = document.querySelector('meta[name="description"]') || document.createElement('meta');
+    description.setAttribute('name', 'description');
+    description.setAttribute('content', series.synopsis.slice(0, 155));
+    document.head.appendChild(description);
+    const canonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');
+    canonical.setAttribute('rel', 'canonical');
+    canonical.setAttribute('href', `${SITE_URL}/series/${series.slug || series.id}`);
+    document.head.appendChild(canonical);
+    const robots = document.querySelector('meta[name="robots"]') || document.createElement('meta');
+    robots.setAttribute('name', 'robots');
+    robots.setAttribute('content', adult ? 'noindex, nofollow' : 'index, follow');
+    document.head.appendChild(robots);
+    const rta = document.querySelector('meta[name="RATING"]');
+    if (adult && ageConfirmed) {
+      const tag = rta || document.createElement('meta');
+      tag.setAttribute('name', 'RATING');
+      tag.setAttribute('content', 'RTA-5042-1996-1400-1577-RTA');
+      document.head.appendChild(tag);
+    } else if (rta) {
+      rta.remove();
+    }
+    return () => { if (rta) rta.remove(); };
+  }, [series, ageConfirmed]);
 
   if (loading) {
     return (
@@ -112,6 +149,18 @@ export const SeriesDetailPage: React.FC = () => {
     );
   }
 
+  if (isAdultRating(series.contentRating) && !ageConfirmed) {
+    return (
+      <AgeGate
+        onLeave={() => navigate('/browse')}
+        onConfirm={() => {
+          rememberAgeConfirmation(user, updateProfile);
+          setAgeConfirmed(true);
+        }}
+      />
+    );
+  }
+
   const currentLibraryItem = library[series.id];
   const userStatus = currentLibraryItem?.status || null;
   const userRating = currentLibraryItem?.userRating || null;
@@ -120,8 +169,8 @@ export const SeriesDetailPage: React.FC = () => {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: `${series.title} - Read Free on Manga24`,
-        text: `Read ${series.title} on Manga24.xyz! ${series.synopsis.slice(0, 100)}...`,
+        title: `${series.title} - Read Free on Manhwa24`,
+        text: `Read ${series.title} on ${SITE_URL}! ${series.synopsis.slice(0, 100)}...`,
         url: window.location.href,
       });
     } else {
@@ -287,6 +336,7 @@ export const SeriesDetailPage: React.FC = () => {
                   <Share2 className="w-3.5 h-3.5" />
                   <span>Share</span>
                 </button>
+                <ReportButton seriesId={series.id} />
               </div>
             </div>
           </div>
@@ -331,7 +381,7 @@ export const SeriesDetailPage: React.FC = () => {
                   <span className="text-base font-bold text-[#F5F1FF] light:text-[#1A1429]">
                     {series.rating.toFixed(2)}
                   </span>
-                  <p className="text-[10px] text-[#A79FC0] light:text-[#6E6288]">Manga24 Score</p>
+                  <p className="text-[10px] text-[#A79FC0] light:text-[#6E6288]">Manhwa24 Score</p>
                 </div>
               </div>
 
@@ -410,7 +460,7 @@ export const SeriesDetailPage: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[10px] text-[#A79FC0] light:text-[#6E6288] block">Serialization:</span>
-                  <span className="font-semibold text-[#F5F1FF] light:text-[#1A1429]">{series.serialization || 'Manga24 Digital'}</span>
+                  <span className="font-semibold text-[#F5F1FF] light:text-[#1A1429]">{series.serialization || 'Manhwa24 Digital'}</span>
                 </div>
               </div>
             </div>

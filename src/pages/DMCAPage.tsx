@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { ShieldCheck, Mail, AlertTriangle, Send } from 'lucide-react';
+import { SITE_EMAIL, SITE_NAME } from '../config';
 
 export const DMCAPage: React.FC = () => {
   const { showToast } = useAppStore();
@@ -34,7 +35,7 @@ export const DMCAPage: React.FC = () => {
           DMCA Copyright & Takedown Policy
         </h1>
         <p className="text-xs sm:text-sm text-[#A79FC0] light:text-[#6E6288] max-w-xl mx-auto">
-          Manga24 (Manga24.xyz) respects the intellectual property rights of all manga authors, artists, and publishers.
+          {SITE_NAME} respects the intellectual property rights of all manga authors, artists, and publishers.
         </p>
       </div>
 
@@ -46,15 +47,21 @@ export const DMCAPage: React.FC = () => {
           It is our policy to respond expeditiously to clear notices of alleged copyright infringement that comply with the United States Digital Millennium Copyright Act (DMCA) and international copyright legislation.
         </p>
         <p>
-          If you are a copyright owner, or are authorized to act on behalf of one, please report alleged copyright infringements taking place on or through the Manga24 website by submitting the designated form below or contacting our Copyright Agent at <strong className="text-[#FF4D6D]">dmca@manga24.xyz</strong>.
+          If you are a copyright owner, or are authorized to act on behalf of one, please send a notice with a link to the original work, the infringing URL, your contact details, a good-faith statement, and your physical or electronic signature to <strong className="text-[#FF4D6D]">{SITE_EMAIL}</strong>.
         </p>
 
         <div className="p-4 rounded-2xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] space-y-2 text-xs">
           <p className="font-bold text-[#FF9F1C]">Designated DMCA Agent Information:</p>
-          <p>Manga24 Legal & Copyright Compliance Bureau</p>
-          <p>Email: dmca@manga24.xyz</p>
+          <p>{SITE_NAME} Legal & Copyright Compliance Bureau</p>
+          <p>Email: {SITE_EMAIL}</p>
           <p>Response SLA: Within 24-48 business hours</p>
         </div>
+      </div>
+
+      <div className="p-6 rounded-3xl bg-[#171122] border border-[#2C2340] light:bg-white light:border-[#E2D9F3] text-xs sm:text-sm leading-relaxed">
+        <h3 className="text-base font-bold mb-2">Counter-notices and repeat infringers</h3>
+        <p>To submit a counter-notice, identify the removed work and URL, provide your contact details, explain why the removal was mistaken, consent to the appropriate court jurisdiction, and sign it. We may restore content when legally required. Accounts that repeatedly infringe copyright may be terminated after strikes.</p>
+        <p className="mt-3 text-xs text-[#A79FC0]">Last updated: [enter date]. This is a general policy and not legal advice.</p>
       </div>
 
       {/* Takedown Submission Form */}
@@ -110,14 +117,14 @@ export const DMCAPage: React.FC = () => {
 
           <div>
             <label className="block text-[#A79FC0] light:text-[#6E6288] mb-1 font-medium">
-              Specific Manga24 URL(s) to be removed
+              Specific Manhwa24 URL(s) to be removed
             </label>
             <input
               type="url"
               required
               value={workUrl}
               onChange={(e) => setWorkUrl(e.target.value)}
-              placeholder="https://manga24.xyz/series/astral-monarch/chapter/1"
+              placeholder="https://manhwa24.xyz/series/title/chapter/1"
               className="w-full p-2.5 rounded-xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3]"
             />
           </div>

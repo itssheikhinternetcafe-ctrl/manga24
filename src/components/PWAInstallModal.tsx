@@ -12,10 +12,10 @@ export const PWAInstallModal: React.FC = () => {
       <div className="w-full max-w-sm rounded-2xl bg-[#171122] border border-[#2C2340] p-6 shadow-2xl text-[#F5F1FF] light:bg-white light:border-[#E2D9F3] light:text-[#1A1429]">
         <div className="flex items-center justify-between pb-4 border-b border-[#2C2340] light:border-[#E2D9F3]">
           <div className="flex items-center gap-3">
-            <img src="/icon.svg" alt="Manga24" className="w-10 h-10 rounded-xl" />
+            <img src="/icon.svg" alt="Manhwa24" className="w-10 h-10 rounded-xl" />
             <div>
-              <h3 className="text-base font-bold font-heading">Install Manga24</h3>
-              <p className="text-xs text-[#A79FC0] light:text-[#6E6288]">Manga24.xyz PWA</p>
+              <h3 className="text-base font-bold font-heading">Install Manhwa24</h3>
+              <p className="text-xs text-[#A79FC0] light:text-[#6E6288]">Manhwa24 PWA</p>
             </div>
           </div>
           <button
@@ -29,7 +29,7 @@ export const PWAInstallModal: React.FC = () => {
 
         <div className="mt-4 space-y-3.5 text-sm">
           <p className="text-xs text-[#A79FC0] light:text-[#6E6288]">
-            Install Manga24 on your iPhone or iPad for fullscreen reading, fast offline caching, and instant 24/7 access:
+            Install Manhwa24 on your iPhone or iPad for fullscreen reading, fast offline caching, and instant 24/7 access:
           </p>
 
           <div className="flex items-start gap-3 p-3 rounded-xl bg-[#1F1830] light:bg-[#F3EEFC]">

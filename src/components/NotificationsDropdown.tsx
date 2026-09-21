@@ -105,7 +105,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ is
 
       <div className="pt-2.5 mt-2 border-t border-[#2C2340] light:border-[#E2D9F3] text-center">
         <span className="text-[11px] text-[#A79FC0] light:text-[#6E6288]">
-          Real-time updates enabled • Manga24.xyz
+          Real-time updates enabled • Manhwa24
         </span>
       </div>
     </div>

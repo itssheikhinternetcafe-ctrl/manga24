@@ -156,13 +156,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             email: fbUser.email || existingProfile?.email || '',
             avatar: fbUser.photoURL || existingProfile?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
             role: assignedRole,
-            bio: existingProfile?.bio || 'Manga24 reader',
+            bio: existingProfile?.bio || 'Manhwa24 reader',
             joinedDate: existingProfile?.joinedDate || new Date().toLocaleDateString(),
             themePreference: existingProfile?.themePreference || theme,
             readerDefaultMode: existingProfile?.readerDefaultMode || 'webtoon',
             readerFitMode: existingProfile?.readerFitMode || 'width',
             readerDarkTrueBlack: existingProfile?.readerDarkTrueBlack || false,
             contentRatingFilter: existingProfile?.contentRatingFilter || 'all',
+            ageConfirmedAt: existingProfile?.ageConfirmedAt,
+            strikes: existingProfile?.strikes || 0,
             defaultPenName: existingProfile?.defaultPenName || '',
           };
 
@@ -199,7 +201,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       email,
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
       role: role as any,
-      bio: 'Manga24 reader',
+      bio: 'Manhwa24 reader',
       joinedDate: 'Just now',
       themePreference: theme,
       readerDefaultMode: 'webtoon',
@@ -231,13 +233,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           email: fbUser.email || '',
           avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
           role: role,
-          bio: existingDoc?.bio || 'Manga24 reader',
+          bio: existingDoc?.bio || 'Manhwa24 reader',
           joinedDate: existingDoc?.joinedDate || new Date().toLocaleDateString(),
           themePreference: theme,
           readerDefaultMode: 'webtoon',
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
+          ageConfirmedAt: existingDoc?.ageConfirmedAt,
+          strikes: existingDoc?.strikes || 0,
           defaultPenName: existingDoc?.defaultPenName || '',
         };
 
@@ -275,13 +279,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           email: fbUser.email || '',
           avatar: fbUser.photoURL || existingDoc?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
           role: role,
-          bio: existingDoc?.bio || 'Manga24 reader',
+          bio: existingDoc?.bio || 'Manhwa24 reader',
           joinedDate: existingDoc?.joinedDate || new Date().toLocaleDateString(),
           themePreference: theme,
           readerDefaultMode: 'webtoon',
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
+          ageConfirmedAt: existingDoc?.ageConfirmedAt,
+          strikes: existingDoc?.strikes || 0,
           defaultPenName: existingDoc?.defaultPenName || '',
         };
 
@@ -315,13 +321,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           email: fbUser.email || '',
           avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
           role: 'user',
-          bio: 'Manga24 member',
+          bio: 'Manhwa24 member',
           joinedDate: new Date().toLocaleDateString(),
           themePreference: theme,
           readerDefaultMode: 'webtoon',
           readerFitMode: 'width',
           readerDarkTrueBlack: false,
           contentRatingFilter: 'all',
+          ageConfirmedAt: undefined,
+          strikes: 0,
           defaultPenName: '',
         };
 
@@ -330,7 +338,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Save to Firestore 'users' collection
         await dbSaveUserProfile(profile);
         setAuthModalOpen(false);
-        showToast('Account Created!', `Welcome to Manga24, ${profile.username}!`, 'success');
+        showToast('Account Created!', `Welcome to Manhwa24, ${profile.username}!`, 'success');
         return;
       } catch (err: any) {
         showToast('Registration Failed', err.message || 'Could not create account.', 'error');
@@ -587,7 +595,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [notifications, setNotifications] = useState<NotificationItem[]>([
     {
       id: 'notif-1',
-      title: 'Welcome to Manga24!',
+      title: 'Welcome to Manhwa24!',
       message: 'Explore reader modes, publish stories in Admin Panel, and read 24/7.',
       timestamp: 'Just now',
       read: false,

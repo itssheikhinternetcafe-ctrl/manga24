@@ -16,10 +16,13 @@ import {
   dbToggleBanUser,
   dbGetSiteSettings,
   dbUpdateSiteSettings,
+  dbGetReports,
+  dbUpdateReport,
+  dbAddUserStrike,
 } from '../services/db';
 import { uploadMediaFile, isFirebaseConfigured } from '../firebase';
 import { aiWriter, hasGeminiApiKey, saveAdminGeminiKey } from '../services/aiWriter';
-import { Series, Chapter, UserProfile, UserComment, SiteSettings, MangaType, MangaStatus, ContentRating, ALL_GENRES } from '../types';
+import { Series, Chapter, UserProfile, UserComment, SiteSettings, MangaType, MangaStatus, ContentRating, ALL_GENRES, ContentReport } from '../types';
 import {
   LayoutDashboard,
   BookOpen,
@@ -53,7 +56,7 @@ export const AdminPage: React.FC = () => {
   const { user, claimAdminRole, setAuthModalOpen, showToast } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'series' | 'chapters' | 'ai_studio' | 'creator_queue' | 'comments' | 'users' | 'settings'
+    'overview' | 'series' | 'chapters' | 'ai_studio' | 'creator_queue' | 'comments' | 'reports' | 'users' | 'settings'
   >('overview');
 
   // Database states
@@ -62,6 +65,7 @@ export const AdminPage: React.FC = () => {
   const [chaptersList, setChaptersList] = useState<Chapter[]>([]);
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [commentsList, setCommentsList] = useState<UserComment[]>([]);
+  const [reportsList, setReportsList] = useState<ContentReport[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +79,7 @@ export const AdminPage: React.FC = () => {
     synopsis: '',
     type: 'Manga' as MangaType,
     status: 'Ongoing' as MangaStatus,
-    contentRating: 'Safe' as ContentRating,
+    contentRating: 'safe' as ContentRating,
     author: '',
     artist: '',
     genres: [] as string[],
@@ -169,6 +173,9 @@ export const AdminPage: React.FC = () => {
       const comments = await dbGetComments();
       setCommentsList(comments);
 
+      const reports = await dbGetReports();
+      setReportsList(reports);
+
       const settings = await dbGetSiteSettings();
       setSiteSettings(settings);
     } catch (err) {
@@ -205,7 +212,7 @@ export const AdminPage: React.FC = () => {
           </div>
           <h2 className="text-xl font-black font-heading text-[#F5F1FF] mb-2">Admin Access Required</h2>
           <p className="text-xs text-[#A79FC0] mb-6 leading-relaxed">
-            The Manga24 Admin Control Panel is strictly protected. Only users with the <span className="text-[#FF4D6D] font-bold">Admin</span> role can access publishing, chapter uploads, and site controls.
+            The Manhwa24 Admin Control Panel is strictly protected. Only users with the <span className="text-[#FF4D6D] font-bold">Admin</span> role can access publishing, chapter uploads, and site controls.
           </p>
 
           <p className="text-[11px] text-[#A79FC0]/80 font-mono-meta">
@@ -265,7 +272,7 @@ export const AdminPage: React.FC = () => {
         type: seriesForm.type,
         status: seriesForm.status,
         contentRating: seriesForm.contentRating,
-        author: seriesForm.author.trim() || 'Manga24 Originals',
+        author: seriesForm.author.trim() || 'Manhwa24 Originals',
         artist: seriesForm.artist.trim(),
         genres: seriesForm.genres,
         tags: seriesForm.tags.split(',').map((s) => s.trim()).filter(Boolean),
@@ -531,7 +538,7 @@ export const AdminPage: React.FC = () => {
             Admin Access Restricted
           </h2>
           <p className="text-xs text-[#A79FC0] light:text-[#6E6288] leading-relaxed mb-6">
-            Only users with role <span className="font-mono text-[#FF4D6D] font-bold">admin</span> can access the Manga24 management console.
+            Only users with role <span className="font-mono text-[#FF4D6D] font-bold">admin</span> can access the Manhwa24 management console.
           </p>
 
           {!user ? (
@@ -563,11 +570,11 @@ export const AdminPage: React.FC = () => {
               Control Center
             </span>
             <span className="text-xs text-[#A79FC0] light:text-[#6E6288] font-mono-meta">
-              Manga24 v2.0 • {isFirebaseConfigured() ? 'Cloud Firestore Connected' : 'Local Persistence Engine (Ready to connect)'}
+              Manhwa24 v2.0 • {isFirebaseConfigured() ? 'Cloud Firestore Connected' : 'Local Persistence Engine (Ready to connect)'}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black font-heading tracking-tight">
-            Manga24 Administrator
+            Manhwa24 Administrator
           </h1>
         </div>
 
@@ -582,7 +589,7 @@ export const AdminPage: React.FC = () => {
                 synopsis: '',
                 type: 'Manga',
                 status: 'Ongoing',
-                contentRating: 'Safe',
+                contentRating: 'safe',
                 author: '',
                 artist: '',
                 genres: ['Action', 'Fantasy'],
@@ -611,6 +618,7 @@ export const AdminPage: React.FC = () => {
           { id: 'ai_studio', label: 'AI Writing Studio', icon: Sparkles, highlight: true },
           { id: 'creator_queue', label: 'Creator Queue', icon: Upload },
           { id: 'comments', label: 'Moderation', icon: MessageSquare },
+          { id: 'reports', label: `Reports (${reportsList.filter((report) => report.status === 'open').length})`, icon: AlertCircle },
           { id: 'users', label: 'Users & Roles', icon: Users },
           { id: 'settings', label: 'Site Settings', icon: Settings },
         ].map((tab) => {
@@ -773,7 +781,7 @@ export const AdminPage: React.FC = () => {
                   synopsis: '',
                   type: 'Manga',
                   status: 'Ongoing',
-                  contentRating: 'Safe',
+                  contentRating: 'safe',
                   author: '',
                   artist: '',
                   genres: ['Action', 'Fantasy'],
@@ -1072,7 +1080,7 @@ export const AdminPage: React.FC = () => {
                   Powered by Gemini 3.8 Flash
                 </span>
                 <h2 className="text-xl font-black font-heading text-white">
-                  Manga24 AI Story Studio
+                  Manhwa24 AI Story Studio
                 </h2>
                 <p className="text-xs text-[#A79FC0] max-w-xl mt-1">
                   Brainstorm original story premises, develop complex world systems, draft multi-chapter arcs, and compose full publication-ready chapters.
@@ -1442,7 +1450,7 @@ export const AdminPage: React.FC = () => {
           <div className="p-6 rounded-3xl bg-[#171122] light:bg-white border border-[#2C2340] light:border-[#E2D9F3]">
             <h3 className="text-base font-bold font-heading mb-1">Creator Submission & Review Queue</h3>
             <p className="text-xs text-[#A79FC0] mb-4">
-              Approved writers and artists with the Creator role submit original manga and web novels here before they go live on Manga24.
+              Approved writers and artists with the Creator role submit original manga and web novels here before they go live on Manhwa24.
             </p>
 
             {seriesList.filter((story) => story.approvalStatus === 'pending').length === 0 ? (
@@ -1460,8 +1468,9 @@ export const AdminPage: React.FC = () => {
                     <img src={story.coverUrl || story.coverImage} alt="" className="w-14 h-18 object-cover rounded-lg" />
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm truncate">{story.title}</p>
-                      <p className="text-[11px] text-[#A79FC0] mt-1">{story.type} · By {story.author} · {story.genres?.join(', ')}</p>
+                      <p className="text-[11px] text-[#A79FC0] mt-1">{story.type} · {story.contentRating} · By {story.author} · {story.genres?.join(', ')}</p>
                       <p className="text-xs text-[#A79FC0] mt-2 line-clamp-2">{story.synopsis}</p>
+                      <p className="text-[10px] text-[#FF9F1C] mt-2">Declarations: {story.uploadDeclarations ? 'accepted' : 'legacy/missing'} · Uploaded {story.uploadedAt || 'unknown'}</p>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0">
                       <a href={`/series/${story.id}`} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg border border-[#2C2340] text-xs font-bold">Open</a>
@@ -1562,6 +1571,19 @@ export const AdminPage: React.FC = () => {
       )}
 
       {/* 7. USERS & ROLES TAB */}
+      {activeTab === 'reports' && (
+        <div className="space-y-3 animate-in fade-in">
+          {reportsList.length === 0 ? <div className="p-8 text-center text-xs text-[#A79FC0]">No reports yet.</div> : reportsList.map((report) => {
+            const story = seriesList.find((item) => item.id === report.seriesId);
+            return <div key={report.id} className="p-4 rounded-2xl bg-[#171122] border border-[#2C2340] flex flex-col gap-3">
+              <div><p className="font-bold text-sm">{report.reason}</p><p className="text-[11px] text-[#A79FC0]">{story?.title || report.seriesId} · {report.createdAt}</p>{report.message && <p className="text-xs mt-2 text-[#A79FC0]">{report.message}</p>}</div>
+              <div className="flex flex-wrap gap-2"><button onClick={async () => { await dbUpdateReport(report.id, { status: 'dismissed' }); setReportsList((items) => items.map((item) => item.id === report.id ? { ...item, status: 'dismissed' } : item)); }} className="px-3 py-2 rounded-lg bg-[#2C2340] text-xs font-bold">Dismiss</button><button onClick={async () => { if (story) await dbUpdateSeries(story.id, { approvalStatus: 'rejected', isDraft: true }); await dbUpdateReport(report.id, { status: 'unpublished' }); showToast('Content unpublished', 'The reported series is no longer public.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Unpublish content</button>{story?.authorId && <><button onClick={async () => { await dbAddUserStrike(story.authorId!); showToast('Strike added', 'The author strike count was updated.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-[#FF9F1C]/15 text-[#FF9F1C] text-xs font-bold">Add strike</button><button onClick={async () => { await dbToggleBanUser(story.authorId!, true); showToast('Author banned', 'The author can no longer upload.', 'info'); await loadData(); }} className="px-3 py-2 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">Ban author</button></>}</div>
+            </div>;
+          })}
+        </div>
+      )}
+
+      {/* 8. USERS & ROLES TAB */}
       {activeTab === 'users' && (
         <div className="space-y-6 animate-in fade-in">
           <div className="p-6 rounded-3xl bg-[#171122] light:bg-white border border-[#2C2340] light:border-[#E2D9F3]">
@@ -1576,6 +1598,7 @@ export const AdminPage: React.FC = () => {
                     <th className="p-3.5">Email</th>
                     <th className="p-3.5">Role</th>
                     <th className="p-3.5">Status</th>
+                    <th className="p-3.5">Strikes</th>
                     <th className="p-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -1592,6 +1615,7 @@ export const AdminPage: React.FC = () => {
                           {u.role}
                         </span>
                       </td>
+                      <td className="p-3.5 font-bold text-[#FF9F1C]">{u.strikes || 0}</td>
                       <td className="p-3.5">
                         {u.isBanned ? (
                           <span className="text-red-400 font-bold">Banned</span>
@@ -1666,7 +1690,7 @@ export const AdminPage: React.FC = () => {
                 <label className="block font-semibold text-[#A79FC0] mb-1">Site Title / Brand</label>
                 <input
                   type="text"
-                  value={siteSettings?.siteName || 'Manga24'}
+                  value={siteSettings?.siteName || 'Manhwa24'}
                   onChange={(e) => setSiteSettings(siteSettings ? { ...siteSettings, siteName: e.target.value } : null)}
                   className="w-full p-2.5 rounded-xl bg-[#0E0A14] border border-[#2C2340] text-white"
                 />
@@ -1798,9 +1822,9 @@ export const AdminPage: React.FC = () => {
                     onChange={(e) => setSeriesForm({ ...seriesForm, contentRating: e.target.value as ContentRating })}
                     className="w-full p-2.5 rounded-xl bg-[#0E0A14] border border-[#2C2340] text-white"
                   >
-                    <option value="Safe">Safe</option>
-                    <option value="Suggestive">Suggestive</option>
-                    <option value="Mature">Mature</option>
+                    <option value="safe">Safe</option>
+                    <option value="16+">16+</option>
+                    <option value="18+">18+</option>
                   </select>
                 </div>
                 <div>

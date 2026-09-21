@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
+import { dbCreateSubmission } from '../services/db';
+import { ContentRating, MangaType, UploadDeclarations } from '../types';
 import { Sparkles, Upload, CheckCircle2, ShieldCheck, Send } from 'lucide-react';
 
 export const UploadRequestPage: React.FC = () => {
@@ -8,17 +10,22 @@ export const UploadRequestPage: React.FC = () => {
   const [contactEmail, setContactEmail] = useState('');
   const [seriesTitle, setSeriesTitle] = useState('');
   const [seriesType, setSeriesType] = useState('Manhwa');
+  const [contentRating, setContentRating] = useState<ContentRating>('safe');
   const [sampleLink, setSampleLink] = useState('');
   const [notes, setNotes] = useState('');
+  const [declarations, setDeclarations] = useState<UploadDeclarations>({ originalCreator: false, adultCharacters: false, noRealPeople: false, acceptsPolicies: false, acceptedAt: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await dbCreateSubmission({ groupName, contactEmail, seriesTitle, seriesType: seriesType as MangaType, contentRating, sampleLink, notes, declarations: { ...declarations, acceptedAt: new Date().toISOString() } });
     showToast('Upload Request Logged', 'Our curation team will review your submission and grant upload rights.', 'success');
     setGroupName('');
     setContactEmail('');
     setSeriesTitle('');
     setSampleLink('');
     setNotes('');
+    setContentRating('safe');
+    setDeclarations({ originalCreator: false, adultCharacters: false, noRealPeople: false, acceptsPolicies: false, acceptedAt: '' });
   };
 
   return (
@@ -114,6 +121,11 @@ export const UploadRequestPage: React.FC = () => {
           </div>
 
           <div>
+            <label className="block text-[#A79FC0] light:text-[#6E6288] mb-1 font-medium">Content Rating *</label>
+            <select required value={contentRating} onChange={(e) => setContentRating(e.target.value as ContentRating)} className="w-full p-2.5 rounded-xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3]"><option value="safe">Safe</option><option value="16+">16+</option><option value="18+">18+</option></select>
+          </div>
+
+          <div>
             <label className="block text-[#A79FC0] light:text-[#6E6288] mb-1 font-medium">
               Additional Notes / Release Schedule
             </label>
@@ -124,6 +136,15 @@ export const UploadRequestPage: React.FC = () => {
               placeholder="Tell us about release frequency, proofreading standards, or credit preferences..."
               className="w-full p-2.5 rounded-xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3] resize-none"
             />
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#0E0A14] border border-[#2C2340] text-[11px] text-[#A79FC0] space-y-2">
+            {([
+              ['originalCreator', 'I am the original creator or I have written permission to publish this work.'],
+              ['adultCharacters', 'All characters shown in sexual or adult content are clearly adults (18+). No minors, no school-age looking characters in sexual content.'],
+              ['noRealPeople', 'This work has no real people, photos or deepfakes.'],
+              ['acceptsPolicies', 'I accept the Terms, Content Policy and DMCA policy.'],
+            ] as const).map(([key, label]) => <label key={key} className="flex items-start gap-2"><input required type="checkbox" checked={declarations[key]} onChange={(e) => setDeclarations((prev) => ({ ...prev, [key]: e.target.checked }))} /><span>{label}</span></label>)}
           </div>
 
           <button

@@ -37,6 +37,9 @@ import {
   LibraryItem,
   ReadingProgress,
   StoryApprovalStatus,
+  UploadSubmission,
+  ContentReport,
+  ReportReason,
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -50,6 +53,8 @@ const STORAGE_KEYS = {
   LIBRARY: 'manga24_db_library',
   HISTORY: 'manga24_db_history',
   FOLLOWS: 'manga24_db_follows',
+  SUBMISSIONS: 'manga24_db_submissions',
+  REPORTS: 'manga24_db_reports',
 };
 
 // Fallback local storage helpers
@@ -74,9 +79,9 @@ function setLocal<T>(key: string, val: T): void {
 }
 
 export const defaultSettings: SiteSettings = {
-  siteName: 'Manga24',
+  siteName: 'Manhwa24',
   logoUrl: '',
-  announcementText: 'Welcome to Manga24 — Read fast, free, and 24/7!',
+  announcementText: 'Welcome to Manhwa24 — Read fast, free, and 24/7!',
   announcementEnabled: true,
   featuredSeriesIds: [],
   allowCreatorSubmissions: true,
@@ -140,6 +145,10 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
 
   if (filters?.contentRatings && filters.contentRatings.length > 0) {
     filtered = filtered.filter((s) => filters.contentRatings!.includes(s.contentRating));
+  }
+
+  if (!filters?.includeAdult) {
+    filtered = filtered.filter((s) => s.contentRating !== '18+');
   }
 
   // Sort
@@ -222,7 +231,7 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
     genres: seriesData.genres || [],
     tags: seriesData.tags || [],
     status: seriesData.status || 'Ongoing',
-    contentRating: seriesData.contentRating || 'Safe',
+    contentRating: seriesData.contentRating || 'safe',
     coverUrl: seriesData.coverUrl || seriesData.coverImage || '',
     bannerUrl: seriesData.bannerUrl || seriesData.bannerImage || '',
     author: seriesData.author || (seriesData.authors?.[0]) || 'Unknown Author',
@@ -243,6 +252,9 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
     authorId: seriesData.authorId || seriesData.creatorId,
     authorName: seriesData.authorName || seriesData.author || 'Unknown Author',
     rejectionReason: seriesData.rejectionReason || '',
+    uploadedBy: seriesData.uploadedBy || seriesData.authorId || seriesData.creatorId,
+    uploadedAt: seriesData.uploadedAt || now,
+    uploadDeclarations: seriesData.uploadDeclarations,
   };
 
   normalizeSeries(newSeries);
@@ -263,7 +275,7 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
           createdAt: _createdAt,
           ...writerSeries
         } = newSeries;
-        await setDoc(doc(db, 'series', id), { ...writerSeries, createdAt: serverTimestamp() });
+        await setDoc(doc(db, 'series', id), { ...writerSeries, approvalStatus: 'pending', createdAt: serverTimestamp() });
       } else {
         await setDoc(doc(db, 'series', id), newSeries);
       }
@@ -278,6 +290,49 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
   setLocal(STORAGE_KEYS.SERIES, [newSeries, ...local.filter((s) => s.id !== id)]);
 
   return newSeries;
+}
+
+export async function dbCreateSubmission(data: Omit<UploadSubmission, 'id' | 'uploadedAt' | 'status'>): Promise<UploadSubmission> {
+  const submission: UploadSubmission = {
+    ...data,
+    id: `submission-${Date.now()}`,
+    uploadedAt: new Date().toISOString(),
+    status: 'pending',
+  };
+  if (isFirebaseConfigured() && db) {
+    await setDoc(doc(db, 'submissions', submission.id), submission);
+  }
+  const saved = getLocal<UploadSubmission[]>(STORAGE_KEYS.SUBMISSIONS, []);
+  setLocal(STORAGE_KEYS.SUBMISSIONS, [submission, ...saved]);
+  return submission;
+}
+
+export async function dbCreateReport(data: { reporterId?: string; seriesId: string; chapterId?: string; reason: ReportReason; message: string }): Promise<ContentReport> {
+  const report: ContentReport = { ...data, id: `report-${Date.now()}`, createdAt: new Date().toISOString(), status: 'open' };
+  if (isFirebaseConfigured() && db) await setDoc(doc(db, 'reports', report.id), report);
+  const reports = getLocal<ContentReport[]>(STORAGE_KEYS.REPORTS, []);
+  setLocal(STORAGE_KEYS.REPORTS, [report, ...reports]);
+  return report;
+}
+
+export async function dbGetReports(): Promise<ContentReport[]> {
+  if (isFirebaseConfigured() && db) {
+    const snap = await getDocs(collection(db, 'reports'));
+    return snap.docs.map((item) => ({ id: item.id, ...item.data() } as ContentReport));
+  }
+  return getLocal<ContentReport[]>(STORAGE_KEYS.REPORTS, []);
+}
+
+export async function dbUpdateReport(id: string, updates: Partial<ContentReport>): Promise<void> {
+  if (isFirebaseConfigured() && db) await updateDoc(doc(db, 'reports', id), updates);
+  const reports = getLocal<ContentReport[]>(STORAGE_KEYS.REPORTS, []);
+  setLocal(STORAGE_KEYS.REPORTS, reports.map((report) => report.id === id ? { ...report, ...updates } : report));
+}
+
+export async function dbAddUserStrike(userId: string): Promise<void> {
+  if (isFirebaseConfigured() && db) await updateDoc(doc(db, 'users', userId), { strikes: increment(1) });
+  const users = getLocal<UserProfile[]>(STORAGE_KEYS.USERS, []);
+  setLocal(STORAGE_KEYS.USERS, users.map((user) => user.id === userId ? { ...user, strikes: (user.strikes || 0) + 1 } : user));
 }
 
 export async function dbUpdateSeries(id: string, updates: Partial<Series>): Promise<Series | null> {
@@ -957,6 +1012,8 @@ function normalizeSeries(s: Series): Series {
   s.altTitles = s.altTitles ?? [];
   s.genres = s.genres ?? [];
   s.tags = s.tags ?? [];
+  const legacyRating = String(s.contentRating || '').toLowerCase();
+  s.contentRating = legacyRating === 'mature' || legacyRating === '18+' ? '18+' : legacyRating === 'suggestive' || legacyRating === '16+' ? '16+' : 'safe';
   s.isDraft = Boolean(s.isDraft);
   return s;
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ShieldCheck, Sparkles, Send, Github, Download, Compass, Bookmark, MessageSquare } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
+import { SITE_EMAIL, SITE_NAME } from '../config';
 
 export const Footer: React.FC = () => {
   const { setIosGuideOpen } = useAppStore();
@@ -19,7 +20,7 @@ export const Footer: React.FC = () => {
               </span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black font-heading text-[#F5F1FF] light:text-[#1A1429]">
-              Install Manga24 as a Progressive Web App
+              Install Manhwa24 as a Progressive Web App
             </h3>
             <p className="text-xs sm:text-sm text-[#A79FC0] light:text-[#6E6288] leading-relaxed">
               Get an app icon on your home screen, zero browser address bars, instant chapter caching, and seamless reader mode.
@@ -32,7 +33,7 @@ export const Footer: React.FC = () => {
               className="px-5 py-2.5 rounded-2xl bg-gradient-brand text-white font-heading font-bold text-xs sm:text-sm shadow-xl hover:opacity-95 active:scale-95 transition flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
-              <span>Install Manga24 PWA</span>
+              <span>Install Manhwa24 PWA</span>
             </button>
             <Link
               to="/upload-request"
@@ -187,10 +188,10 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="mailto:contact@manga24.xyz"
+                  href={`mailto:${SITE_EMAIL}`}
                   className="hover:text-[#8B5CFF] transition"
                 >
-                  Contact: contact@manga24.xyz
+                  Contact: {SITE_EMAIL}
                 </a>
               </li>
             </ul>
@@ -200,7 +201,7 @@ export const Footer: React.FC = () => {
         {/* Bottom copyright & disclaimer */}
         <div className="pt-8 mt-8 border-t border-[#2C2340]/60 light:border-[#E2D9F3] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <p className="text-center sm:text-left">
-            © {new Date().getFullYear()} Manga24 (Manga24.xyz). Built for manga readers worldwide.
+            © {SITE_NAME}. Built for manga readers worldwide.
           </p>
 
           <p className="flex items-center gap-1.5 text-center sm:text-right">

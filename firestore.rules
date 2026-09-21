@@ -35,6 +35,9 @@ service cloud.firestore {
         isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid &&
         request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        request.resource.data.contentRating in ['safe', '16+', '18+'] &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) != true &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('strikes', 0) < 3 &&
         request.resource.data.createdAt == request.time &&
         (!request.resource.data.keys().hasAny(['featured']) || request.resource.data.featured == false) &&
         (!request.resource.data.keys().hasAny(['isFeatured']) || request.resource.data.isFeatured == false) &&
@@ -51,6 +54,7 @@ service cloud.firestore {
         request.resource.data.authorId == request.auth.uid &&
         resource.data.approvalStatus != 'rejected' &&
         request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'featured', 'isFeatured', 'isTrending', 'isEditorPick',
           'views', 'followersCount', 'rating', 'ratingCount', 'createdAt'
@@ -108,7 +112,8 @@ service cloud.firestore {
       allow update: if isAdmin() || (
         isOwner(userId) &&
         request.resource.data.role == resource.data.role &&
-        request.resource.data.get('isBanned', false) == resource.data.get('isBanned', false)
+        request.resource.data.get('isBanned', false) == resource.data.get('isBanned', false) &&
+        request.resource.data.get('strikes', 0) == resource.data.get('strikes', 0)
       );
       allow delete: if isAdmin();
     }
@@ -155,8 +160,15 @@ service cloud.firestore {
     // Creator submissions queue
     match /submissions/{submissionId} {
       allow read: if isAdmin() || (isAuthenticated() && resource.data.creatorId == request.auth.uid);
-      allow create: if isCreator();
+      allow create: if isAuthenticated();
       allow update, delete: if isAdmin();
+    }
+
+    // Reports may be submitted by guests, but only admins can review them.
+    match /reports/{reportId} {
+      allow create: if request.resource.data.keys().hasAll(['seriesId', 'reason', 'createdAt', 'status']) &&
+        request.resource.data.reason in ['Copyright/stolen', 'Minor/child content', 'Non-consensual/real person', 'Wrong content rating', 'Other'];
+      allow read, update, delete: if isAdmin();
     }
 
     // Site Settings (admin only write)
