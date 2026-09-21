@@ -1,4 +1,4 @@
-export type MangaType = 'Manga' | 'Manhwa' | 'Manhua' | 'Webtoon' | 'Novel';
+export type MangaType = 'Manga' | 'Manhwa' | 'Manhua' | 'Webtoon' | 'Novel' | 'Comic';
 export type SeriesType = MangaType;
 
 export const ALL_GENRES: string[] = [

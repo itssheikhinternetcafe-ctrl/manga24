@@ -175,6 +175,8 @@ export const CreatorUploadPage: React.FC = () => {
                 <option value="Webtoon">Webtoon (Long Strip)</option>
                 <option value="Manga">Manga</option>
                 <option value="Manhwa">Manhwa</option>
+                <option value="Manhua">Manhua</option>
+                <option value="Comic">Comic</option>
                 <option value="Novel">Serialized Web Novel (Text Prose)</option>
               </select>
             </div>

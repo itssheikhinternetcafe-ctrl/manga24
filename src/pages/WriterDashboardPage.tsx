@@ -42,9 +42,10 @@ const WRITER_TYPES: { value: MangaType; label: string }[] = [
   { value: "Manhua", label: "Manhua" },
   { value: "Webtoon", label: "Webtoon" },
   { value: "Novel", label: "Web novel" },
+  { value: "Comic", label: "Comic" },
 ];
 type DashboardView = "overview" | "new" | "manage" | "comments" | "profile";
-const mediaTypes: MangaType[] = ["Manga", "Manhwa", "Manhua", "Webtoon"];
+const mediaTypes: MangaType[] = ["Manga", "Manhwa", "Manhua", "Webtoon", "Comic"];
 const statusClass: Record<string, string> = {
   published: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   draft: "bg-[#A79FC0]/15 text-[#A79FC0] border-[#A79FC0]/30",

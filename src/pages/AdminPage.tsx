@@ -1786,6 +1786,7 @@ export const AdminPage: React.FC = () => {
                     <option value="Manhua">Manhua</option>
                     <option value="Webtoon">Webtoon</option>
                     <option value="Novel">Novel (Serialized Prose)</option>
+                    <option value="Comic">Comic</option>
                   </select>
                 </div>
               </div>

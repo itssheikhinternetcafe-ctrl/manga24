@@ -45,6 +45,7 @@ export const SeriesCard: React.FC<SeriesCardProps> = ({
     Manhwa: 'bg-[#8B5CFF] text-white',
     Manhua: 'bg-[#FF9F1C] text-[#0E0A14]',
     Webtoon: 'bg-[#00B4D8] text-white',
+    Comic: 'bg-[#22C55E] text-white',
   };
 
   return (

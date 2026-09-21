@@ -181,7 +181,7 @@ export const BrowsePage: React.FC = () => {
             Browse Catalog
           </h1>
           <p className="text-xs sm:text-sm text-[#A79FC0] light:text-[#6E6288] mt-1">
-            Explore manga, manhwa, manhua, and webtoons across every available genre
+            Explore manga, manhwa, manhua, comics, and webtoons across every available genre
           </p>
         </div>
 
@@ -282,7 +282,7 @@ export const BrowsePage: React.FC = () => {
           <span className="text-xs text-[#A79FC0] light:text-[#6E6288] font-mono-meta mr-1">
             Type:
           </span>
-          {(['Manga', 'Manhwa', 'Manhua', 'Webtoon'] as SeriesType[]).map((t) => (
+          {(['Manga', 'Manhwa', 'Manhua', 'Webtoon', 'Comic'] as SeriesType[]).map((t) => (
             <button
               key={t}
               onClick={() => toggleType(t)}

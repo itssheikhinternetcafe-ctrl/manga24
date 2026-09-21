@@ -102,6 +102,7 @@ export const UploadRequestPage: React.FC = () => {
                 <option value="Manga">Manga (Japanese)</option>
                 <option value="Manhua">Manhua (Chinese)</option>
                 <option value="Webtoon">Original Webtoon</option>
+                <option value="Comic">Comic</option>
               </select>
             </div>
           </div>

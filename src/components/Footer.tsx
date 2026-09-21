@@ -78,6 +78,11 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/browse?type=Comic" className="hover:text-[#FF4D6D] transition">
+                  Comics
+                </Link>
+              </li>
+              <li>
                 <Link to="/browse?sort=popular" className="hover:text-[#FF4D6D] transition">
                   Top Ranked Series
                 </Link>
