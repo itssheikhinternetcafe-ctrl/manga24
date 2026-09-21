@@ -831,7 +831,8 @@ export const AdminPage: React.FC = () => {
                         />
                         <div>
                           <p className="font-bold text-sm text-[#F5F1FF] light:text-[#1A1429] line-clamp-1">{s.title}</p>
-                          <p className="text-[11px] text-[#A79FC0] light:text-[#6E6288]">By {s.author}</p>
+                          <p className="text-[11px] text-[#A79FC0] light:text-[#6E6288]">Pen name: {s.author}</p>
+                          <p className="text-[10px] text-[#A79FC0]/75 light:text-[#6E6288]">Account: {usersList.find((item) => item.id === s.authorId)?.username || 'Unknown account'}</p>
                         </div>
                       </td>
                       <td className="p-3.5">
@@ -1488,7 +1489,8 @@ export const AdminPage: React.FC = () => {
                       <img src={story.coverUrl || story.coverImage} alt="" className="w-14 h-18 object-cover rounded-lg" />
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-sm truncate">{story.title}</p>
-                        <p className="text-[11px] text-[#A79FC0] mt-1">{story.type} · By {story.author}</p>
+                        <p className="text-[11px] text-[#A79FC0] mt-1">{story.type} · Pen name: {story.author}</p>
+                        <p className="text-[10px] text-[#A79FC0]/75">Account: {usersList.find((item) => item.id === story.authorId)?.username || 'Unknown account'}</p>
                         <span className={`inline-block mt-2 px-2 py-1 rounded-full border text-[10px] font-bold ${story.approvalStatus === 'published' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : story.approvalStatus === 'rejected' ? 'bg-red-500/15 text-red-400 border-red-500/30' : 'bg-[#A79FC0]/15 text-[#A79FC0] border-[#A79FC0]/30'}`}>
                           {story.approvalStatus === 'published' ? 'Published' : story.approvalStatus === 'rejected' ? 'Removed by admin' : 'Draft'}
                         </span>

@@ -25,6 +25,7 @@ import {
   dbSaveReadingProgress,
   dbGetUserLibrary,
   dbGetUserHistory,
+  dbUpdateAuthorStories,
 } from '../services/db';
 
 interface ToastInfo {
@@ -383,6 +384,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(updated);
     localStorage.setItem('manga24_user', JSON.stringify(updated));
     await dbSaveUserProfile(updated);
+    if (updates.defaultPenName !== undefined) {
+      const updatedStories = await dbUpdateAuthorStories(user.id, updates.defaultPenName);
+      showToast('Settings Saved', `Updated ${updatedStories} stories.`, 'success');
+      return;
+    }
     showToast('Settings Saved', 'Your profile preferences were updated.', 'success');
   };
 

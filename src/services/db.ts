@@ -334,8 +334,16 @@ export async function dbGetSeriesByAuthor(authorId: string): Promise<Series[]> {
   }
 
   return getLocal<Series[]>(STORAGE_KEYS.SERIES, [])
-    .filter((series) => series.authorId === authorId || series.creatorId === authorId)
+    .filter((series) => series.authorId === authorId)
     .map(normalizeSeries);
+}
+
+export async function dbUpdateAuthorStories(authorId: string, author: string): Promise<number> {
+  const stories = (await dbGetSeriesByAuthor(authorId)).filter((series) => series.approvalStatus !== 'rejected');
+  for (const story of stories) {
+    await dbUpdateSeries(story.id, { author, authorName: author });
+  }
+  return stories.length;
 }
 
 export async function dbDeleteSeries(id: string): Promise<boolean> {

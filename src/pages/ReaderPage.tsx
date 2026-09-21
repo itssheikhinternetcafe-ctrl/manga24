@@ -252,7 +252,7 @@ export const ReaderPage: React.FC = () => {
                 {series?.title || 'Series'}
               </Link>
               <p className="text-[10px] text-[#A79FC0] light:text-[#6E6288] font-mono-meta truncate">
-                Ch. {currentChNum}: {currentChapter?.title || 'Episode'}
+                By {series?.author || series?.authorName || 'Unknown Author'} · Ch. {currentChNum}: {currentChapter?.title || 'Episode'}
               </p>
             </div>
           </div>
