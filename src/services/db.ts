@@ -40,6 +40,10 @@ import {
   UploadSubmission,
   ContentReport,
   ReportReason,
+  AdminLog,
+  ContentRating,
+  ModerationStatus,
+  CreatorStatus,
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -55,6 +59,7 @@ const STORAGE_KEYS = {
   FOLLOWS: 'manga24_db_follows',
   SUBMISSIONS: 'manga24_db_submissions',
   REPORTS: 'manga24_db_reports',
+  ADMIN_LOGS: 'manga24_db_admin_logs',
 };
 
 // Fallback local storage helpers
@@ -439,6 +444,59 @@ export async function dbDeleteSeries(id: string): Promise<boolean> {
   );
 
   return true;
+}
+
+export async function dbModerateSeries(id: string, updates: {
+  contentRating?: ContentRating;
+  moderationStatus?: ModerationStatus;
+  flaggedForReview?: boolean;
+  moderationUpdatedAt?: string;
+  moderationUpdatedBy?: string;
+}): Promise<void> {
+  if (isFirebaseConfigured() && db) {
+    await updateDoc(doc(db, 'series', id), updates);
+  }
+  const series = getLocal<Series[]>(STORAGE_KEYS.SERIES, []);
+  setLocal(STORAGE_KEYS.SERIES, series.map((item) => item.id === id ? { ...item, ...updates } : item));
+}
+
+export async function dbModerateWriter(userId: string, updates: {
+  creatorStatus: CreatorStatus;
+  moderationUpdatedAt: string;
+  moderationUpdatedBy: string;
+}): Promise<void> {
+  if (isFirebaseConfigured() && db) {
+    await updateDoc(doc(db, 'users', userId), updates);
+  }
+  const users = getLocal<UserProfile[]>(STORAGE_KEYS.USERS, []);
+  setLocal(STORAGE_KEYS.USERS, users.map((item) => item.id === userId ? { ...item, ...updates } : item));
+  const stories = getLocal<Series[]>(STORAGE_KEYS.SERIES, []);
+  setLocal(STORAGE_KEYS.SERIES, stories.map((item) => item.authorId === userId ? {
+    ...item,
+    moderationStatus: updates.creatorStatus === 'active' ? 'active' : 'suspended',
+    moderationUpdatedAt: updates.moderationUpdatedAt,
+    moderationUpdatedBy: updates.moderationUpdatedBy,
+  } : item));
+}
+
+export async function dbGetAdminLogs(): Promise<AdminLog[]> {
+  if (isFirebaseConfigured() && db) {
+    const snapshot = await getDocs(query(collection(db, 'adminLogs'), orderBy('createdAt', 'desc'), firestoreLimit(250)));
+    return snapshot.docs.map((item) => {
+      const data = item.data() as Omit<AdminLog, 'id' | 'createdAt'> & { createdAt?: string | { toDate?: () => Date } };
+      const createdAt = typeof data.createdAt === 'string' ? data.createdAt : data.createdAt?.toDate?.().toISOString() || new Date().toISOString();
+      return { id: item.id, ...data, createdAt } as AdminLog;
+    });
+  }
+  return getLocal<AdminLog[]>(STORAGE_KEYS.ADMIN_LOGS, []);
+}
+
+export async function dbSaveAdminLog(log: AdminLog): Promise<void> {
+  if (isFirebaseConfigured() && db) {
+    await setDoc(doc(db, 'adminLogs', log.id), { ...log, createdAt: serverTimestamp() });
+  }
+  const logs = getLocal<AdminLog[]>(STORAGE_KEYS.ADMIN_LOGS, []);
+  setLocal(STORAGE_KEYS.ADMIN_LOGS, [log, ...logs]);
 }
 
 // ----------------------------------------------------------------------
@@ -1029,5 +1087,7 @@ function normalizeSeries(s: Series): Series {
   const legacyRating = String(s.contentRating || '').toLowerCase();
   s.contentRating = legacyRating === 'mature' || legacyRating === '18+' ? '18+' : legacyRating === 'suggestive' || legacyRating === '16+' ? '16+' : 'safe';
   s.isDraft = Boolean(s.isDraft);
+  s.moderationStatus = s.moderationStatus || 'active';
+  s.flaggedForReview = Boolean(s.flaggedForReview);
   return s;
 }

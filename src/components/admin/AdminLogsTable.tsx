@@ -1,0 +1,4 @@
+import React from 'react';
+import { AdminLog } from '../../types';
+
+export const AdminLogsTable: React.FC<{ logs: AdminLog[] }> = ({ logs }) => <div className="overflow-x-auto rounded-xl border border-[#2C2340] bg-[#171122]"><table className="w-full min-w-[700px] text-left text-xs"><thead className="border-b border-[#2C2340] text-[#A79FC0]"><tr><th className="px-4 py-3">When</th><th>Action</th><th>Target</th><th>Admin</th></tr></thead><tbody>{logs.map((log) => <tr key={log.id} className="border-b border-[#2C2340]/70 last:border-0"><td className="px-4 py-3 text-[#A79FC0]">{new Date(log.createdAt).toLocaleString()}</td><td className="font-semibold text-white">{log.action}</td><td>{log.targetLabel || log.targetId || 'System'}</td><td>{log.actorEmail}</td></tr>)}</tbody></table>{logs.length === 0 && <p className="p-10 text-center text-sm text-[#A79FC0]">No admin actions recorded yet.</p>}</div>;

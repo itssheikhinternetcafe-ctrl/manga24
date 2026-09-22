@@ -11,6 +11,8 @@ export const ALL_GENRES: string[] = [
 export type MangaStatus = 'Ongoing' | 'Completed' | 'Hiatus';
 export type PublicationStatus = MangaStatus;
 export type StoryApprovalStatus = 'draft' | 'pending' | 'published' | 'rejected' | 'under-review';
+export type ModerationStatus = 'active' | 'suspended';
+export type CreatorStatus = 'active' | 'suspended' | 'banned';
 
 export type Demographic = 'Shounen' | 'Seinen' | 'Shoujo' | 'Josei' | 'All Ages';
 
@@ -99,6 +101,11 @@ export interface Series {
   authorId?: string;
   authorName?: string;
   approvalStatus?: StoryApprovalStatus | 'approved';
+  moderationStatus?: ModerationStatus;
+  flaggedForReview?: boolean;
+  moderationUpdatedAt?: string;
+  moderationUpdatedBy?: string;
+  coverAssetId?: string;
   rejectionReason?: string;
   chapters?: Chapter[];
   uploadedBy?: string;
@@ -268,6 +275,22 @@ export interface UserProfile {
   strikes?: number;
   approvedAdultChapters?: number;
   defaultPenName?: string;
+  creatorStatus?: CreatorStatus;
+  emailNormalized?: string;
+  moderationUpdatedAt?: string;
+  moderationUpdatedBy?: string;
+}
+
+export interface AdminLog {
+  id: string;
+  actorUid: string;
+  actorEmail: string;
+  action: string;
+  targetType: 'story' | 'writer' | 'chapter' | 'system';
+  targetId?: string;
+  targetLabel?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
 }
 
 export interface SiteSettings {

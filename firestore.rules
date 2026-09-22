@@ -11,12 +11,9 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Role-based helper from user profile doc
+    // Admin authority is issued only by the Firebase Admin SDK.
     function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.role == 'admin' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      return isAuthenticated() && request.auth.token.admin == true;
     }
 
     function isCreator() {
@@ -40,7 +37,8 @@ service cloud.firestore {
 
     // Series collection: published stories are public; authors can see their own workflow states.
     match /series/{seriesId} {
-      allow read: if resource.data.approvalStatus == 'published' || isAdmin() ||
+      allow read: if (resource.data.approvalStatus == 'published' && resource.data.get('moderationStatus', 'active') == 'active' &&
+        (resource.data.get('authorId', '') == '' || get(/databases/$(database)/documents/users/$(resource.data.authorId)).data.get('creatorStatus', 'active') == 'active')) || isAdmin() ||
         (isAuthenticated() && resource.data.authorId == request.auth.uid);
       allow create: if isAdmin() || (
         isAuthenticated() &&
@@ -51,7 +49,10 @@ service cloud.firestore {
             (request.resource.data.contentRating in ['safe', '16+'] ||
               (request.resource.data.contentRating == '18+' && isTrustedAdultWriter())))) &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
+        request.resource.data.get('moderationStatus', 'active') == 'active' &&
+        request.resource.data.get('flaggedForReview', false) == false &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) != true &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('creatorStatus', 'active') == 'active' &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('strikes', 0) < 3 &&
         request.resource.data.createdAt == request.time &&
         (!request.resource.data.keys().hasAny(['featured']) || request.resource.data.featured == false) &&
@@ -69,6 +70,7 @@ service cloud.firestore {
         request.resource.data.authorId == request.auth.uid &&
         resource.data.approvalStatus != 'rejected' &&
         request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
+        request.resource.data.approvalStatus == resource.data.approvalStatus &&
         (request.resource.data.approvalStatus != 'published' ||
           (hasAcceptedDeclarations(request.resource.data) &&
             (request.resource.data.contentRating in ['safe', '16+'] ||
@@ -76,7 +78,8 @@ service cloud.firestore {
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'featured', 'isFeatured', 'isTrending', 'isEditorPick',
-          'views', 'followersCount', 'rating', 'ratingCount', 'createdAt', 'approvedAdultChapters', 'strikes', 'isBanned', 'role'
+          'views', 'followersCount', 'rating', 'ratingCount', 'createdAt', 'approvedAdultChapters', 'strikes', 'isBanned', 'role',
+          'contentRating', 'moderationStatus', 'flaggedForReview', 'moderationUpdatedAt', 'moderationUpdatedBy', 'coverAssetId'
         ])
       ) || (
         resource.data.approvalStatus == 'published' &&
@@ -98,10 +101,12 @@ service cloud.firestore {
 
     // Chapters are published directly by their authors.
     match /chapters/{chapterId} {
-      allow read: if isAdmin() || resource.data.approvalStatus == 'published';
+      allow read: if isAdmin() || (resource.data.approvalStatus == 'published' &&
+        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('moderationStatus', 'active') == 'active');
       allow create: if (
         isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('creatorStatus', 'active') == 'active' &&
         request.resource.data.approvalStatus == 'published'
       );
       allow update: if isAdmin() || (
@@ -127,6 +132,10 @@ service cloud.firestore {
         request.resource.data.get('isBanned', false) == resource.data.get('isBanned', false) &&
         request.resource.data.get('strikes', 0) == resource.data.get('strikes', 0)
         && request.resource.data.get('approvedAdultChapters', 0) == resource.data.get('approvedAdultChapters', 0)
+        && request.resource.data.get('creatorStatus', 'active') == resource.data.get('creatorStatus', 'active')
+        && request.resource.data.get('emailNormalized', '') == resource.data.get('emailNormalized', '')
+        && request.resource.data.get('moderationUpdatedAt', '') == resource.data.get('moderationUpdatedAt', '')
+        && request.resource.data.get('moderationUpdatedBy', '') == resource.data.get('moderationUpdatedBy', '')
       );
       allow delete: if isAdmin();
     }
@@ -188,6 +197,15 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    match /adminLogs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /bannedEmails/{email} {
+      allow read, write: if isAdmin();
     }
   }
 }

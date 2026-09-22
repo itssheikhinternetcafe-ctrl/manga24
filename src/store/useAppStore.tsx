@@ -123,9 +123,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isFirebaseConfigured() && auth) {
       const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
         if (fbUser) {
+          const tokenResult = await fbUser.getIdTokenResult(true);
+          const isClaimedAdmin = tokenResult.claims.admin === true;
           // Fetch existing user doc from Firestore 'users' collection
           const existingProfile = await dbGetUserProfile(fbUser.uid);
-          const assignedRole = existingProfile?.role || 'user';
+          const assignedRole = isClaimedAdmin ? 'admin' : (existingProfile?.role === 'admin' ? 'user' : (existingProfile?.role || 'user'));
 
           const profile: UserProfile = {
             id: fbUser.uid,
@@ -197,10 +199,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const result = await signInWithPopup(auth, googleProvider);
         const fbUser = result.user;
+        const tokenResult = await fbUser.getIdTokenResult(true);
+        const isClaimedAdmin = tokenResult.claims.admin === true;
 
         // Check if document exists in 'users' collection
         const existingDoc = await dbGetUserProfile(fbUser.uid);
-        const role = existingDoc?.role || 'user';
+        const role = isClaimedAdmin ? 'admin' : (existingDoc?.role === 'admin' ? 'user' : (existingDoc?.role || 'user'));
 
         const profile: UserProfile = {
           id: fbUser.uid,
@@ -243,10 +247,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const result = await signInWithEmailAndPassword(auth, email, pass);
         const fbUser = result.user;
+        const tokenResult = await fbUser.getIdTokenResult(true);
+        const isClaimedAdmin = tokenResult.claims.admin === true;
 
         // Retrieve existing role from 'users' collection
         const existingDoc = await dbGetUserProfile(fbUser.uid);
-        const role = existingDoc?.role || 'user';
+        const role = isClaimedAdmin ? 'admin' : (existingDoc?.role === 'admin' ? 'user' : (existingDoc?.role || 'user'));
 
         const profile: UserProfile = {
           id: fbUser.uid,
@@ -341,7 +347,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const claimAdminRole = async () => {
     showToast(
       'Admin role is protected',
-      'Set role = "admin" on your document in Firestore (users collection) from the Firebase Console.',
+      'Admin access is issued only through a Firebase custom claim.',
       'info'
     );
   };

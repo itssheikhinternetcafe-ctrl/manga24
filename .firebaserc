@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "firebase deploy --only firestore:rules": "manga24-d3462"
+  },
+  "targets": {},
+  "etags": {}
+}
