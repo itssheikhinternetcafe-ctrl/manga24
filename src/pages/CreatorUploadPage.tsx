@@ -69,17 +69,13 @@ export const CreatorUploadPage: React.FC = () => {
         coverUrl: coverUrl || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80',
         author: user?.username || 'Creator',
         creatorId: user?.id,
-        approvalStatus: user?.role === 'admin' || contentRating !== '18+' || (user?.approvedAdultChapters || 0) >= 2 ? 'published' : 'pending',
-        isDraft: user?.role !== 'admin' && contentRating === '18+' && (user?.approvedAdultChapters || 0) < 2,
+        approvalStatus: 'published',
+        isDraft: false,
         uploadedBy: user?.id,
         uploadedAt: new Date().toISOString(),
         uploadDeclarations: { ...declarations, acceptedAt: new Date().toISOString() },
       });
-      setSuccessMessage(
-        user?.role === 'admin'
-          ? `Series "${title}" published immediately!`
-          : `Series "${title}" submitted to the editorial review queue. Our moderators will verify originality and approve it shortly.`
-      );
+      setSuccessMessage(`Series "${title}" published immediately!`);
       setTitle('');
       setSynopsis('');
       setCoverUrl('');
@@ -130,7 +126,7 @@ export const CreatorUploadPage: React.FC = () => {
         </div>
         <h1 className="text-2xl font-black font-heading">Submit Original Work</h1>
         <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mt-1">
-          All submissions must be 100% original. Submitted works appear in the editorial queue for quality and DMCA compliance check before going live.
+          All submissions must be 100% original. Submitted works are published immediately.
         </p>
       </div>
 
@@ -256,7 +252,7 @@ export const CreatorUploadPage: React.FC = () => {
             disabled={submitting}
             className="w-full py-3 rounded-xl font-heading font-bold text-xs bg-gradient-brand text-white shadow-lg shadow-[#FF4D6D]/20 hover:opacity-95 transition"
           >
-            {submitting ? 'Submitting to Queue...' : 'Submit Original Series for Review'}
+            {submitting ? 'Submitting...' : 'Submit Original Series'}
           </button>
         </form>
       </div>

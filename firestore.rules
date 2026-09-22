@@ -35,7 +35,7 @@ service cloud.firestore {
     }
 
     function isTrustedAdultWriter() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('approvedAdultChapters', 0) >= 2;
+      return true;
     }
 
     // Series collection: published stories are public; authors can see their own workflow states.
@@ -96,23 +96,20 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Chapters are published directly by their writers.
+    // Chapters are published directly by their authors.
     match /chapters/{chapterId} {
-      allow read: if isAdmin() || resource.data.status == 'published';
+      allow read: if isAdmin() || resource.data.approvalStatus == 'published';
       allow create: if (
         isAuthenticated() &&
-        request.resource.data.writerId == request.auth.uid &&
-        request.resource.data.status == 'published' &&
-        request.resource.data.rightsConfirmed == true &&
-        request.resource.data.category in ['general', 'teen', 'mature'] &&
-        (request.resource.data.category != 'mature' || request.resource.data.ageConfirmed == true)
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.approvalStatus == 'published'
       );
       allow update: if isAdmin() || (
         isAuthenticated() &&
-        resource.data.writerId == request.auth.uid &&
-        request.resource.data.writerId == request.auth.uid &&
-        resource.data.status == 'published' &&
-        request.resource.data.status == 'published' &&
+        resource.data.authorId == request.auth.uid &&
+        request.resource.data.authorId == request.auth.uid &&
+        resource.data.approvalStatus == 'published' &&
+        request.resource.data.approvalStatus == 'published' &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['flagged'])
       );
       allow delete: if isAdmin();
