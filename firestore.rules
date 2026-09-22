@@ -96,32 +96,24 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Chapters follow the visibility and ownership of their parent story.
+    // Chapters are published directly by their writers.
     match /chapters/{chapterId} {
-      allow read: if isAdmin() ||
-        (isAuthenticated() && get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.authorId == request.auth.uid) ||
-        (resource.data.approvalStatus == 'published' && resource.data.isDraft != true &&
-          get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.approvalStatus == 'published');
-      allow create: if isAdmin() || (
+      allow read: if isAdmin() || resource.data.status == 'published';
+      allow create: if (
         isAuthenticated() &&
-        get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.authorId == request.auth.uid &&
-        get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.approvalStatus != 'rejected' &&
-        request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
-        (request.resource.data.approvalStatus != 'published' ||
-          (get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data.contentRating in ['safe', '16+'] || isTrustedAdultWriter())) &&
-        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft' || request.resource.data.approvalStatus == 'pending')
+        request.resource.data.writerId == request.auth.uid &&
+        request.resource.data.status == 'published' &&
+        request.resource.data.rightsConfirmed == true &&
+        request.resource.data.category in ['general', 'teen', 'mature'] &&
+        (request.resource.data.category != 'mature' || request.resource.data.ageConfirmed == true)
       );
       allow update: if isAdmin() || (
         isAuthenticated() &&
-        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.authorId == request.auth.uid &&
-        request.resource.data.seriesId == resource.data.seriesId &&
-        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.approvalStatus != 'rejected' &&
-        request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
-        (request.resource.data.approvalStatus != 'published' ||
-          (get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.contentRating in ['safe', '16+'] || isTrustedAdultWriter())) &&
-        request.resource.data.isDraft == (request.resource.data.approvalStatus == 'draft' || request.resource.data.approvalStatus == 'pending')
+        resource.data.writerId == request.auth.uid &&
+        request.resource.data.writerId == request.auth.uid &&
+        resource.data.status == 'published' &&
+        request.resource.data.status == 'published' &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['flagged'])
       );
       allow delete: if isAdmin();
     }
