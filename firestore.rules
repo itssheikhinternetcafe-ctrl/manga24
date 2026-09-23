@@ -24,30 +24,12 @@ service cloud.firestore {
       );
     }
 
-    function hasAcceptedDeclarations(data) {
-      return data.get('uploadDeclarations', {}).get('originalCreator', false) == true &&
-        data.get('uploadDeclarations', {}).get('adultCharacters', false) == true &&
-        data.get('uploadDeclarations', {}).get('noRealPeople', false) == true &&
-        data.get('uploadDeclarations', {}).get('acceptsPolicies', false) == true;
-    }
-
-    function isTrustedAdultWriter() {
-      return true;
-    }
-
-    // Series collection: published stories are public; authors can see their own workflow states.
+    // Series collection: active stories are public; authors can save drafts privately in the UI.
     match /series/{seriesId} {
-      allow read: if (resource.data.approvalStatus == 'published' && resource.data.get('moderationStatus', 'active') == 'active' &&
-        (resource.data.get('authorId', '') == '' || get(/databases/$(database)/documents/users/$(resource.data.authorId)).data.get('creatorStatus', 'active') == 'active')) || isAdmin() ||
-        (isAuthenticated() && resource.data.authorId == request.auth.uid);
+      allow read: if isAdmin() || resource.data.get('moderationStatus', 'active') == 'active';
       allow create: if isAdmin() || (
         isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
-        (request.resource.data.approvalStatus != 'published' ||
-          (hasAcceptedDeclarations(request.resource.data) &&
-            (request.resource.data.contentRating in ['safe', '16+'] ||
-              (request.resource.data.contentRating == '18+' && isTrustedAdultWriter())))) &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         request.resource.data.get('moderationStatus', 'active') == 'active' &&
         request.resource.data.get('flaggedForReview', false) == false &&
@@ -68,13 +50,6 @@ service cloud.firestore {
         isAuthenticated() &&
         resource.data.authorId == request.auth.uid &&
         request.resource.data.authorId == request.auth.uid &&
-        resource.data.approvalStatus != 'rejected' &&
-        request.resource.data.approvalStatus in ['draft', 'pending', 'published'] &&
-        request.resource.data.approvalStatus == resource.data.approvalStatus &&
-        (request.resource.data.approvalStatus != 'published' ||
-          (hasAcceptedDeclarations(request.resource.data) &&
-            (request.resource.data.contentRating in ['safe', '16+'] ||
-              (request.resource.data.contentRating == '18+' && isTrustedAdultWriter())))) &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'featured', 'isFeatured', 'isTrending', 'isEditorPick',
@@ -82,14 +57,14 @@ service cloud.firestore {
           'contentRating', 'moderationStatus', 'flaggedForReview', 'moderationUpdatedAt', 'moderationUpdatedBy', 'coverAssetId'
         ])
       ) || (
-        resource.data.approvalStatus == 'published' &&
-        request.resource.data.approvalStatus == 'published' &&
+        resource.data.get('moderationStatus', 'active') == 'active' &&
+        request.resource.data.get('moderationStatus', 'active') == 'active' &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) &&
         request.resource.data.get('views', 0) == resource.data.get('views', 0) + 1
       ) || (
         isAuthenticated() &&
-        resource.data.approvalStatus == 'published' &&
-        request.resource.data.approvalStatus == 'published' &&
+        resource.data.get('moderationStatus', 'active') == 'active' &&
+        request.resource.data.get('moderationStatus', 'active') == 'active' &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']) &&
         (
           request.resource.data.get('followersCount', 0) == resource.data.get('followersCount', 0) + 1 ||
@@ -102,21 +77,16 @@ service cloud.firestore {
     // Chapters are published directly by their authors.
     match /chapters/{chapterId} {
       allow read: if isAdmin() ||
-        (resource.data.approvalStatus == 'published' &&
-          get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('moderationStatus', 'active') == 'active') ||
-        (isAuthenticated() && resource.data.authorId == request.auth.uid);
+        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('moderationStatus', 'active') == 'active';
       allow create: if (
         isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('creatorStatus', 'active') == 'active' &&
-        request.resource.data.approvalStatus == 'published'
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('creatorStatus', 'active') == 'active'
       );
       allow update: if isAdmin() || (
         isAuthenticated() &&
         resource.data.authorId == request.auth.uid &&
         request.resource.data.authorId == request.auth.uid &&
-        resource.data.approvalStatus == 'published' &&
-        request.resource.data.approvalStatus == 'published' &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['flagged'])
       );
       allow delete: if isAdmin();
@@ -179,13 +149,6 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
       allow delete: if isAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
-    }
-
-    // Creator submissions queue
-    match /submissions/{submissionId} {
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.creatorId == request.auth.uid);
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin();
     }
 
     // Reports may be submitted by guests, but only admins can review them.

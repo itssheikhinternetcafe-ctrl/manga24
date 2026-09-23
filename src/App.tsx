@@ -9,7 +9,6 @@ import { ReaderPage } from './pages/ReaderPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { CommunityPage } from './pages/CommunityPage';
 import { DMCAPage } from './pages/DMCAPage';
-import { UploadRequestPage } from './pages/UploadRequestPage';
 import { AdminPage } from './pages/AdminPage';
 import { CreatorUploadPage } from './pages/CreatorUploadPage';
 import { WriterDashboardPage } from './pages/WriterDashboardPage';
@@ -36,7 +35,6 @@ export default function App() {
             <Route path="privacy" element={<PrivacyPage />} />
             <Route path="content-policy" element={<ContentPolicyPage />} />
             <Route path="community-guidelines" element={<CommunityGuidelinesPage />} />
-            <Route path="upload-request" element={<UploadRequestPage />} />
             <Route path="404" element={<NotFoundPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>

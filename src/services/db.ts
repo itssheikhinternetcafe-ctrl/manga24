@@ -36,8 +36,6 @@ import {
   FilterOptions,
   LibraryItem,
   ReadingProgress,
-  StoryApprovalStatus,
-  UploadSubmission,
   ContentReport,
   ReportReason,
   AdminLog,
@@ -57,7 +55,6 @@ const STORAGE_KEYS = {
   LIBRARY: 'manga24_db_library',
   HISTORY: 'manga24_db_history',
   FOLLOWS: 'manga24_db_follows',
-  SUBMISSIONS: 'manga24_db_submissions',
   REPORTS: 'manga24_db_reports',
   ADMIN_LOGS: 'manga24_db_admin_logs',
 };
@@ -102,11 +99,7 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
   if (isFirebaseConfigured() && db) {
     try {
       const seriesCol = collection(db, 'series');
-      let q = query(seriesCol);
-      if (!includeDrafts) {
-        q = query(seriesCol, where('approvalStatus', '==', 'published'));
-      }
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(query(seriesCol));
       allSeries = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Series));
     } catch (err) {
       console.warn('[Firestore] Error fetching series, falling back to local store:', err);
@@ -114,9 +107,6 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
     }
   } else {
     allSeries = getLocal<Series[]>(STORAGE_KEYS.SERIES, []);
-    if (!includeDrafts) {
-      allSeries = allSeries.filter((s) => s.approvalStatus === 'published');
-    }
   }
 
   // Ensure compatibility fields
@@ -124,6 +114,10 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
 
   // Apply filters
   let filtered = [...allSeries];
+
+  if (!includeDrafts) {
+    filtered = filtered.filter((s) => !s.isDraft && s.moderationStatus !== 'suspended');
+  }
 
   if (filters?.query && filters.query.trim() !== '') {
     const q = filters.query.toLowerCase().trim();
@@ -202,7 +196,7 @@ export async function dbGetSeriesById(idOrSlug: string): Promise<Series | null> 
       }
 
       // Check by slug
-      const q = query(collection(db, 'series'), where('slug', '==', idOrSlug), where('approvalStatus', '==', 'published'), firestoreLimit(1));
+      const q = query(collection(db, 'series'), where('slug', '==', idOrSlug), firestoreLimit(1));
       const querySnap = await getDocs(q);
       if (!querySnap.empty) {
         const first = querySnap.docs[0];
@@ -253,7 +247,6 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
     latestChapterNumber: 0,
     latestUpdateDate: now.split('T')[0],
     creatorId: seriesData.creatorId,
-    approvalStatus: seriesData.approvalStatus || 'published',
     authorId: seriesData.authorId || seriesData.creatorId,
     authorName: seriesData.authorName || seriesData.author || 'Unknown Author',
     rejectionReason: seriesData.rejectionReason || '',
@@ -266,7 +259,7 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
 
   if (isFirebaseConfigured() && db) {
     try {
-      const isAuthorSubmission = Boolean(newSeries.authorId) && ['draft', 'pending', 'published'].includes(newSeries.approvalStatus || '');
+      const isAuthorSubmission = Boolean(newSeries.authorId);
       if (isAuthorSubmission) {
         const {
           featured: _featured,
@@ -297,21 +290,6 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
   return newSeries;
 }
 
-export async function dbCreateSubmission(data: Omit<UploadSubmission, 'id' | 'uploadedAt' | 'status'>): Promise<UploadSubmission> {
-  const submission: UploadSubmission = {
-    ...data,
-    id: `submission-${Date.now()}`,
-    uploadedAt: new Date().toISOString(),
-    status: 'pending',
-  };
-  if (isFirebaseConfigured() && db) {
-    await setDoc(doc(db, 'submissions', submission.id), submission);
-  }
-  const saved = getLocal<UploadSubmission[]>(STORAGE_KEYS.SUBMISSIONS, []);
-  setLocal(STORAGE_KEYS.SUBMISSIONS, [submission, ...saved]);
-  return submission;
-}
-
 export async function dbCreateReport(data: { reporterId?: string; seriesId: string; chapterId?: string; reason: ReportReason; message: string }): Promise<ContentReport> {
   const report: ContentReport = { ...data, id: `report-${Date.now()}`, createdAt: new Date().toISOString(), status: 'open' };
   if (isFirebaseConfigured() && db) await setDoc(doc(db, 'reports', report.id), report);
@@ -320,9 +298,9 @@ export async function dbCreateReport(data: { reporterId?: string; seriesId: stri
   const targetReports = (await dbGetReports()).filter((item) => item.status === 'open' && item.seriesId === report.seriesId && item.chapterId === report.chapterId && item.reporterId);
   if (new Set(targetReports.map((item) => item.reporterId)).size >= 3) {
     if (report.chapterId) {
-      await dbUpdateChapter(report.chapterId, { approvalStatus: 'under-review', isDraft: true });
+      await dbUpdateChapter(report.chapterId, { isDraft: true });
     } else {
-      await dbUpdateSeries(report.seriesId, { approvalStatus: 'under-review', isDraft: true });
+      await dbUpdateSeries(report.seriesId, { isDraft: true });
     }
   }
   return report;
@@ -363,7 +341,6 @@ export async function dbUpdateSeries(id: string, updates: Partial<Series>): Prom
     ...existing,
     ...updates,
     updatedAt: now,
-    approvalStatus: updates.approvalStatus || existing.approvalStatus || (updates.isDraft ? 'draft' : 'published'),
     coverUrl: updates.coverUrl || updates.coverImage || existing.coverUrl,
     bannerUrl: updates.bannerUrl || updates.bannerImage || existing.bannerUrl,
   };
@@ -413,7 +390,7 @@ export async function dbGetSeriesByAuthor(authorId: string): Promise<Series[]> {
 }
 
 export async function dbUpdateAuthorStories(authorId: string, author: string): Promise<number> {
-  const stories = (await dbGetSeriesByAuthor(authorId)).filter((series) => series.approvalStatus !== 'rejected');
+  const stories = await dbGetSeriesByAuthor(authorId);
   for (const story of stories) {
     await dbUpdateSeries(story.id, { author, authorName: author });
   }
@@ -510,7 +487,7 @@ export async function dbGetChapters(seriesId: string, includeDrafts = false): Pr
     try {
       const q = includeDrafts
         ? query(collection(db, 'chapters'), where('seriesId', '==', seriesId))
-        : query(collection(db, 'chapters'), where('seriesId', '==', seriesId), where('approvalStatus', '==', 'published'), where('isDraft', '==', false));
+        : query(collection(db, 'chapters'), where('seriesId', '==', seriesId), where('isDraft', '==', false));
       const snap = await getDocs(q);
       list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Chapter));
     } catch (err) {
@@ -522,7 +499,7 @@ export async function dbGetChapters(seriesId: string, includeDrafts = false): Pr
   }
 
   if (!includeDrafts) {
-    list = list.filter((c) => !c.isDraft && c.approvalStatus === 'published');
+    list = list.filter((c) => !c.isDraft);
   }
 
   return list.sort((a, b) => b.number - a.number);
@@ -551,7 +528,6 @@ export async function dbCreateChapter(chapterData: Partial<Chapter>): Promise<Ch
     likes: 0,
     isDraft: Boolean(chapterData.isDraft),
     scheduledAt: chapterData.scheduledAt,
-    approvalStatus: chapterData.approvalStatus || 'published',
     creatorId: chapterData.creatorId,
     authorId: chapterData.authorId || chapterData.creatorId,
     authorName: chapterData.authorName,

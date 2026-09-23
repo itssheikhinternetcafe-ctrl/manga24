@@ -10,7 +10,7 @@ import {
   dbUpdateSeries,
 } from "../services/db";
 import { uploadMediaFile } from "../firebase";
-import { Chapter, ContentRating, MangaType, Series, StoryApprovalStatus, UploadDeclarations } from "../types";
+import { Chapter, ContentRating, MangaType, Series, UploadDeclarations } from "../types";
 import {
   BookOpen,
   Check,
@@ -239,7 +239,7 @@ export const WriterDashboardPage: React.FC = () => {
     }
   };
 
-  const saveStory = async (approvalStatus: StoryApprovalStatus) => {
+  const saveStory = async (publish: boolean) => {
     if (!user) return;
     setError("");
     const author = cleanName(form.author);
@@ -274,7 +274,7 @@ export const WriterDashboardPage: React.FC = () => {
       );
       return;
     }
-    if (approvalStatus === "published" && !Object.values(form.declarations).slice(0, 4).every(Boolean)) {
+    if (publish && !Object.values(form.declarations).slice(0, 4).every(Boolean)) {
       setError("Please accept all four upload declarations before publishing.");
       return;
     }
@@ -293,8 +293,7 @@ export const WriterDashboardPage: React.FC = () => {
         creatorId: user.id,
         contentRating: form.contentRating,
         uploadDeclarations: { ...form.declarations, acceptedAt: new Date().toISOString() },
-        approvalStatus: approvalStatus === "published" ? "published" : "draft",
-        isDraft: approvalStatus !== "published",
+        isDraft: !publish,
       });
       await dbCreateChapter({
         seriesId: story.id,
@@ -302,15 +301,14 @@ export const WriterDashboardPage: React.FC = () => {
         title: cleanName(form.chapterTitle) || "Chapter 1",
         pages: form.type === "Novel" ? [] : form.pages,
         textContent: form.type === "Novel" ? form.textContent : "",
-        isDraft: approvalStatus !== "published",
-        approvalStatus: approvalStatus === "published" ? "published" : "draft",
+        isDraft: !publish,
         creatorId: user.id,
         authorId: user.id,
         authorName: author,
       });
       showToast(
         "Story saved",
-        approvalStatus === "published"
+        publish
           ? "Your story is now visible to readers."
           : "Your draft is saved.",
         "success",
@@ -347,7 +345,6 @@ export const WriterDashboardPage: React.FC = () => {
         pages: form.type === "Novel" ? [] : form.pages,
         textContent: form.type === "Novel" ? form.textContent : "",
         isDraft: !publish,
-        approvalStatus: publish ? ("published" as const) : ("draft" as const),
         creatorId: user.id,
         authorId: user.id,
         authorName: selectedStory.author,
@@ -547,13 +544,9 @@ export const WriterDashboardPage: React.FC = () => {
                           </p>
                         </div>
                         <span
-                          className={`hidden sm:inline-block px-2 py-1 rounded-full border text-[10px] font-bold ${statusClass[story.approvalStatus || "draft"]}`}
+                          className={`hidden sm:inline-block px-2 py-1 rounded-full border text-[10px] font-bold ${statusClass[story.isDraft ? "draft" : "published"]}`}
                         >
-                          {story.approvalStatus === "published"
-                            ? "Published"
-                            : story.approvalStatus === "rejected"
-                              ? "Removed by admin"
-                              : "Draft"}
+                          {story.isDraft ? "Draft" : story.moderationStatus === "suspended" ? "Suspended" : "Published"}
                         </span>
                         <Edit3 className="w-4 h-4 text-[#FF9F1C]" />
                       </button>
@@ -674,7 +667,7 @@ type FormProps = {
   pageUploadProgress: string;
   error: string;
   saving: boolean;
-  saveStory: (status: StoryApprovalStatus) => void;
+  saveStory: (publish: boolean) => void;
   user: any;
 };
 const StoryForm: React.FC<FormProps> = ({
@@ -701,7 +694,7 @@ const StoryForm: React.FC<FormProps> = ({
       <div className="flex gap-2">
         <button
           disabled={saving}
-          onClick={() => saveStory("draft")}
+          onClick={() => saveStory(false)}
           className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#2C2340] text-xs font-bold"
         >
           <Save className="w-4 h-4" />
@@ -709,7 +702,7 @@ const StoryForm: React.FC<FormProps> = ({
         </button>
         <button
           disabled={saving}
-          onClick={() => saveStory("published")}
+          onClick={() => saveStory(true)}
           className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-gradient-brand text-white text-xs font-bold"
         >
           <Check className="w-4 h-4" />

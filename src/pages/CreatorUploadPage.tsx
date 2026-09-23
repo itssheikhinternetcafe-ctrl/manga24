@@ -69,7 +69,6 @@ export const CreatorUploadPage: React.FC = () => {
         coverUrl: coverUrl || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80',
         author: user?.username || 'Creator',
         creatorId: user?.id,
-        approvalStatus: 'published',
         isDraft: false,
         uploadedBy: user?.id,
         uploadedAt: new Date().toISOString(),

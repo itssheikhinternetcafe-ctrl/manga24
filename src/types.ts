@@ -10,7 +10,6 @@ export const ALL_GENRES: string[] = [
 
 export type MangaStatus = 'Ongoing' | 'Completed' | 'Hiatus';
 export type PublicationStatus = MangaStatus;
-export type StoryApprovalStatus = 'draft' | 'pending' | 'published' | 'rejected' | 'under-review';
 export type ModerationStatus = 'active' | 'suspended';
 export type CreatorStatus = 'active' | 'suspended' | 'banned';
 
@@ -41,7 +40,6 @@ export interface Chapter {
   textContent?: string; // Novel/story prose content
   isDraft: boolean;
   scheduledAt?: string;
-  approvalStatus?: StoryApprovalStatus | 'approved';
   creatorId?: string;
   authorId?: string;
   authorName?: string;
@@ -100,7 +98,6 @@ export interface Series {
   creatorId?: string;
   authorId?: string;
   authorName?: string;
-  approvalStatus?: StoryApprovalStatus | 'approved';
   moderationStatus?: ModerationStatus;
   flaggedForReview?: boolean;
   moderationUpdatedAt?: string;
@@ -119,24 +116,6 @@ export interface UploadDeclarations {
   noRealPeople: boolean;
   acceptsPolicies: boolean;
   acceptedAt: string;
-}
-
-export interface UploadSubmission {
-  id: string;
-  groupName: string;
-  contactEmail: string;
-  seriesTitle: string;
-  seriesType: MangaType;
-  contentRating: ContentRating;
-  sampleLink: string;
-  notes: string;
-  uploadedBy?: string;
-  uploadedAt: string;
-  authorId?: string;
-  seriesId?: string;
-  chapterId?: string;
-  declarations: UploadDeclarations;
-  status: 'pending' | 'approved' | 'rejected';
 }
 
 export type ReportReason = 'Copyright/stolen' | 'Minor/child content' | 'Non-consensual/real person' | 'Wrong content rating' | 'Other';

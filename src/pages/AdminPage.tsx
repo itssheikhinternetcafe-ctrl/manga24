@@ -51,7 +51,7 @@ export const AdminPage: React.FC = () => {
     const text = query.trim().toLowerCase();
     return (!text || story.title.toLowerCase().includes(text) || (story.authorName || story.author).toLowerCase().includes(text)) &&
       (rating === 'all' || story.contentRating === rating) &&
-      (status === 'all' || (status === 'published' && story.moderationStatus !== 'suspended' && story.approvalStatus !== 'draft') || (status === 'suspended' && story.moderationStatus === 'suspended') || (status === 'draft' && story.approvalStatus === 'draft')) &&
+      (status === 'all' || (status === 'published' && !story.isDraft && story.moderationStatus !== 'suspended') || (status === 'suspended' && story.moderationStatus === 'suspended') || (status === 'draft' && story.isDraft)) &&
       (flagged === 'all' || (flagged === 'flagged' && story.flaggedForReview) || (flagged === 'clear' && !story.flaggedForReview));
   }), [stories, query, rating, status, flagged]);
 

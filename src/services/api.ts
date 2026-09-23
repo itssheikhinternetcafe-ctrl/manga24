@@ -32,10 +32,11 @@ export const api = {
    */
   async getSeriesById(idOrSlug: string): Promise<Series | null> {
     const series = await dbGetSeriesById(idOrSlug);
-    if (series) {
+    if (series && !series.isDraft && series.moderationStatus !== 'suspended') {
       dbIncrementSeriesView(series.id);
+      return series;
     }
-    return series;
+    return null;
   },
 
   /**

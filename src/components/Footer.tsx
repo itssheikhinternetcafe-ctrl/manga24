@@ -107,11 +107,6 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/upload-request" className="hover:text-[#FF9F1C] transition">
-                  Submit Original Work
-                </Link>
-              </li>
-              <li>
                 <Link to="/community-guidelines" className="hover:text-[#FF9F1C] transition">
                   Community Guidelines
                 </Link>

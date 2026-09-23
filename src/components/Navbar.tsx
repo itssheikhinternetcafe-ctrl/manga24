@@ -453,13 +453,6 @@ export const Navbar: React.FC = () => {
               <span>Community Forum</span>
             </Link>
             <Link
-              to="/upload-request"
-              className="flex items-center gap-2 p-3 rounded-xl bg-[#171122] light:bg-[#F3EEFC] text-xs font-semibold"
-            >
-              <Sparkles className="w-4 h-4 text-[#FF9F1C]" />
-              <span>Upload Request</span>
-            </Link>
-            <Link
               to="/creator-upload"
               className="flex items-center gap-2 p-3 rounded-xl bg-[#171122] light:bg-[#F3EEFC] text-xs font-semibold text-[#8B5CFF]"
             >

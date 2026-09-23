@@ -248,12 +248,6 @@ export const CommunityPage: React.FC = () => {
               <p className="text-xs text-[#A79FC0] light:text-[#6E6288] mb-3 leading-relaxed">
                 Are you a creator or authorized publisher? Verify your account to unlock direct chapter uploads and reader analytics.
               </p>
-              <a
-                href="/upload-request"
-                className="inline-block w-full py-2 rounded-xl bg-gradient-brand text-white font-heading font-bold text-xs text-center shadow-md"
-              >
-                Apply for Group Badge
-              </a>
             </div>
           </div>
         </div>
