@@ -101,8 +101,10 @@ service cloud.firestore {
 
     // Chapters are published directly by their authors.
     match /chapters/{chapterId} {
-      allow read: if isAdmin() || (resource.data.approvalStatus == 'published' &&
-        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('moderationStatus', 'active') == 'active');
+      allow read: if isAdmin() ||
+        (resource.data.approvalStatus == 'published' &&
+          get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('moderationStatus', 'active') == 'active') ||
+        (isAuthenticated() && resource.data.authorId == request.auth.uid);
       allow create: if (
         isAuthenticated() &&
         request.resource.data.authorId == request.auth.uid &&
