@@ -36,7 +36,7 @@ export const AdminPage: React.FC = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const [seriesResult, usersResult, logsResult] = await Promise.all([dbGetSeries(undefined, true), dbGetUsers(), dbGetAdminLogs()]);
+      const [seriesResult, usersResult, logsResult] = await Promise.all([dbGetSeries({ includeAdult: true }, true), dbGetUsers(), dbGetAdminLogs()]);
       setStories(seriesResult.items);
       setWriters(usersResult.filter((writer) => writer.role === 'creator' || seriesResult.items.some((story) => story.authorId === writer.id)));
       setLogs(logsResult);
