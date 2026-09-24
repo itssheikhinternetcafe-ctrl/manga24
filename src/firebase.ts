@@ -27,6 +27,8 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
 import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from 'firebase/app-check';
+import { getFunctions, httpsCallable, Functions } from 'firebase/functions';
 
 const cleanFirebaseEnvValue = (value: string | undefined): string | undefined => {
   const trimmed = value?.trim();
@@ -46,6 +48,8 @@ const firebaseEnv = {
   VITE_FIREBASE_STORAGE_BUCKET: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET),
   VITE_FIREBASE_MESSAGING_SENDER_ID: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID),
   VITE_FIREBASE_APP_ID: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_APP_ID),
+  VITE_FIREBASE_APPCHECK_SITE_KEY: cleanFirebaseEnvValue(import.meta.env.VITE_FIREBASE_APPCHECK_SITE_KEY),
+  VITE_RECAPTCHA_SITE_KEY: cleanFirebaseEnvValue(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
 };
 
 // PASTE YOUR FIREBASE CONFIG CREDENTIALS HERE OR USE VITE_ ENVIRONMENT VARIABLES:
@@ -91,12 +95,21 @@ export function getFirebaseConfigError(): string {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let functions: Functions | null = null;
 
 export function initFirebase() {
   if (isFirebaseConfigured() && !app) {
     try {
       app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
       auth = getAuth(app);
+      functions = getFunctions(app);
+      const appCheckSiteKey = firebaseEnv.VITE_FIREBASE_APPCHECK_SITE_KEY || firebaseEnv.VITE_RECAPTCHA_SITE_KEY;
+      if (appCheckSiteKey && typeof window !== 'undefined') {
+        const provider = firebaseEnv.VITE_FIREBASE_APPCHECK_SITE_KEY
+          ? new ReCaptchaEnterpriseProvider(appCheckSiteKey)
+          : new ReCaptchaV3Provider(appCheckSiteKey);
+        initializeAppCheck(app, { provider, isTokenAutoRefreshEnabled: true });
+      }
       try {
         // ignoreUndefinedProperties: Firestore rejects `undefined` values, this prevents silent save failures
         db = initializeFirestore(app, { ignoreUndefinedProperties: true });
@@ -114,7 +127,12 @@ initFirebase();
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-export { app, auth, db, firebaseConfig };
+export { app, auth, db, functions, firebaseConfig };
+
+export function getProtectedWrite() {
+  if (!functions) throw new Error('Firebase Functions are not configured.');
+  return httpsCallable(functions, 'protectedWrite');
+}
 
 const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1';
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;

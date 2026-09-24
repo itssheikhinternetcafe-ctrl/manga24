@@ -7,6 +7,7 @@ import { SeriesCard } from '../components/SeriesCard';
 import { AgeGate, hasAgeConfirmation, isAdultRating, rememberAgeConfirmation } from '../components/ContentSafety';
 import { SITE_NAME, SITE_URL } from '../config';
 import { ReportButton } from '../components/ReportButton';
+import { TurnstileWidget } from '../components/TurnstileWidget';
 import {
   Star,
   Bookmark,
@@ -60,6 +61,7 @@ export const SeriesDetailPage: React.FC = () => {
   const [newCommentText, setNewCommentText] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [revealedSpoilers, setRevealedSpoilers] = useState<Record<string, boolean>>({});
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   useEffect(() => {
     async function loadSeriesData() {
@@ -186,7 +188,7 @@ export const SeriesDetailPage: React.FC = () => {
     const newComment = await api.postComment({
       content: newCommentText.trim(),
       isSpoiler,
-    });
+    }, turnstileToken);
 
     setComments((prev) => [newComment, ...prev]);
     setNewCommentText('');
@@ -588,6 +590,7 @@ export const SeriesDetailPage: React.FC = () => {
 
               {/* Post Comment Input */}
               <form onSubmit={handlePostComment} className="mb-6 space-y-2">
+                <TurnstileWidget onToken={setTurnstileToken} />
                 <textarea
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}

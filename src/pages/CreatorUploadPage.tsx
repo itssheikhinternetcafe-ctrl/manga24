@@ -4,6 +4,7 @@ import { dbCreateSeries, dbCreateChapter } from '../services/db';
 import { uploadMediaFile } from '../firebase';
 import { ContentRating, MangaType, ALL_GENRES, UploadDeclarations } from '../types';
 import { Upload, Sparkles, CheckCircle2, ShieldAlert, ArrowRight, BookOpen, FileText } from 'lucide-react';
+import { TurnstileWidget } from '../components/TurnstileWidget';
 
 export const CreatorUploadPage: React.FC = () => {
   const { user, requestCreatorRole, showToast } = useAppStore();
@@ -27,6 +28,7 @@ export const CreatorUploadPage: React.FC = () => {
     acceptedAt: '',
   });
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   // Chapter Form
   const [seriesId, setSeriesId] = useState('');
@@ -73,7 +75,7 @@ export const CreatorUploadPage: React.FC = () => {
         uploadedBy: user?.id,
         uploadedAt: new Date().toISOString(),
         uploadDeclarations: { ...declarations, acceptedAt: new Date().toISOString() },
-      });
+      }, turnstileToken);
       setSuccessMessage(`Series "${title}" published immediately!`);
       setTitle('');
       setSynopsis('');
@@ -139,6 +141,7 @@ export const CreatorUploadPage: React.FC = () => {
       {/* Form Card */}
       <div className="p-6 rounded-3xl bg-[#171122] light:bg-white border border-[#2C2340] light:border-[#E2D9F3] shadow-lg">
         <form onSubmit={handleSeriesSubmit} className="space-y-4 text-xs">
+          <TurnstileWidget onToken={setTurnstileToken} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-semibold text-[#A79FC0] mb-1">Series Title *</label>

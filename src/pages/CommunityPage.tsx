@@ -15,6 +15,7 @@ import {
   Award,
   Sparkles,
 } from 'lucide-react';
+import { TurnstileWidget } from '../components/TurnstileWidget';
 
 const categories = [
   'All',
@@ -38,6 +39,7 @@ export const CommunityPage: React.FC = () => {
   const [postTitle, setPostTitle] = useState('');
   const [postCategory, setPostCategory] = useState('General');
   const [postContent, setPostContent] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   useEffect(() => {
     async function loadPosts() {
@@ -47,7 +49,7 @@ export const CommunityPage: React.FC = () => {
     loadPosts();
   }, [selectedCategory]);
 
-  const handleCreatePost = (e: React.FormEvent) => {
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!postTitle.trim() || !postContent.trim()) return;
 
@@ -65,7 +67,13 @@ export const CommunityPage: React.FC = () => {
       createdAt: 'Just now',
     };
 
-    setPosts([newPost, ...posts]);
+    try {
+      const savedPost = await api.createCommunityPost(newPost, turnstileToken);
+      setPosts([savedPost, ...posts]);
+    } catch (error) {
+      showToast('Unable to publish', error instanceof Error ? error.message : 'Please try again.', 'error');
+      return;
+    }
     setPostTitle('');
     setPostContent('');
     setNewPostModal(false);
@@ -288,6 +296,7 @@ export const CommunityPage: React.FC = () => {
           <div className="w-full max-w-lg rounded-2xl bg-[#171122] border border-[#2C2340] p-6 shadow-2xl text-[#F5F1FF] light:bg-white light:border-[#E2D9F3] light:text-[#1A1429]">
             <h3 className="text-base font-bold font-heading mb-4">Start New Community Discussion</h3>
             <form onSubmit={handleCreatePost} className="space-y-3">
+              <TurnstileWidget onToken={setTurnstileToken} />
               <div>
                 <label className="block text-xs font-medium text-[#A79FC0] mb-1">Topic Title</label>
                 <input

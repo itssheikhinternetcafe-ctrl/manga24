@@ -24,7 +24,7 @@ import {
   Timestamp,
   serverTimestamp,
 } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '../firebase';
+import { db, getProtectedWrite, isFirebaseConfigured } from '../firebase';
 import {
   Series,
   Chapter,
@@ -214,7 +214,7 @@ export async function dbGetSeriesById(idOrSlug: string): Promise<Series | null> 
   return found ? normalizeSeries(found) : null;
 }
 
-export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Series> {
+export async function dbCreateSeries(seriesData: Partial<Series>, turnstileToken?: string): Promise<Series> {
   const now = new Date().toISOString();
   const id = seriesData.id || `series-${Date.now()}`;
   const slug = (seriesData.slug || seriesData.title || id)
@@ -275,9 +275,11 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
           createdAt: _createdAt,
           ...writerSeries
         } = newSeries;
-        await setDoc(doc(db, 'series', id), { ...writerSeries, createdAt: serverTimestamp() });
+        const result = await getProtectedWrite()({ action: 'series', data: { ...writerSeries, createdAt: now }, turnstileToken });
+        Object.assign(newSeries, result.data as Partial<Series>);
       } else {
-        await setDoc(doc(db, 'series', id), newSeries);
+        const result = await getProtectedWrite()({ action: 'series', data: newSeries, turnstileToken });
+        Object.assign(newSeries, result.data as Partial<Series>);
       }
     } catch (err) {
       console.error('[Firestore] Save error:', err);
@@ -292,9 +294,12 @@ export async function dbCreateSeries(seriesData: Partial<Series>): Promise<Serie
   return newSeries;
 }
 
-export async function dbCreateReport(data: { reporterId?: string; seriesId: string; chapterId?: string; reason: ReportReason; message: string }): Promise<ContentReport> {
+export async function dbCreateReport(data: { reporterId?: string; seriesId: string; chapterId?: string; reason: ReportReason; message: string }, turnstileToken?: string): Promise<ContentReport> {
   const report: ContentReport = { ...data, id: `report-${Date.now()}`, createdAt: new Date().toISOString(), status: 'open' };
-  if (isFirebaseConfigured() && db) await setDoc(doc(db, 'reports', report.id), report);
+  if (isFirebaseConfigured() && db) {
+    const result = await getProtectedWrite()({ action: 'report', data: report, turnstileToken });
+    Object.assign(report, result.data as ContentReport);
+  }
   const reports = getLocal<ContentReport[]>(STORAGE_KEYS.REPORTS, []);
   setLocal(STORAGE_KEYS.REPORTS, [report, ...reports]);
   const targetReports = (await dbGetReports()).filter((item) => item.status === 'open' && item.seriesId === report.seriesId && item.chapterId === report.chapterId && item.reporterId);
@@ -686,7 +691,7 @@ export async function dbGetComments(seriesId?: string, chapterId?: string): Prom
   return comments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function dbPostComment(commentData: Partial<UserComment>): Promise<UserComment> {
+export async function dbPostComment(commentData: Partial<UserComment>, turnstileToken?: string): Promise<UserComment> {
   const id = `comment-${Date.now()}`;
   const newComment: UserComment = {
     id,
@@ -708,7 +713,8 @@ export async function dbPostComment(commentData: Partial<UserComment>): Promise<
 
   if (isFirebaseConfigured() && db) {
     try {
-      await setDoc(doc(db, 'comments', id), newComment);
+      const result = await getProtectedWrite()({ action: 'comment', data: newComment, turnstileToken });
+      Object.assign(newComment, result.data as UserComment);
     } catch (err) {
       console.error('[Firestore] Post comment error:', err);
       throw err;
@@ -763,7 +769,7 @@ export async function dbGetCommunityPosts(category?: string): Promise<CommunityP
   return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function dbCreateCommunityPost(post: Partial<CommunityPost>): Promise<CommunityPost> {
+export async function dbCreateCommunityPost(post: Partial<CommunityPost>, turnstileToken?: string): Promise<CommunityPost> {
   const id = `post-${Date.now()}`;
   const newPost: CommunityPost = {
     id,
@@ -784,7 +790,8 @@ export async function dbCreateCommunityPost(post: Partial<CommunityPost>): Promi
 
   if (isFirebaseConfigured() && db) {
     try {
-      await setDoc(doc(db, 'posts', id), newPost);
+      const result = await getProtectedWrite()({ action: 'communityPost', data: newPost, turnstileToken });
+      Object.assign(newPost, result.data as CommunityPost);
     } catch (err) {
       console.error('[Firestore] Create post error:', err);
       throw err;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { X, Sparkles, User, Lock, Mail, ShieldAlert, CheckCircle2, ArrowRight } from 'lucide-react';
+import { TurnstileWidget, verifyTurnstileToken } from './TurnstileWidget';
 
 export const AuthModal: React.FC = () => {
   const {
@@ -19,6 +20,7 @@ export const AuthModal: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   if (!authModalOpen) return null;
 
@@ -28,6 +30,7 @@ export const AuthModal: React.FC = () => {
     setLoading(true);
 
     try {
+      await verifyTurnstileToken(turnstileToken);
       if (tab === 'login') {
         if (!email.trim() || !password.trim()) {
           throw new Error('Please enter both your email address and password.');
@@ -53,6 +56,7 @@ export const AuthModal: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
+      await verifyTurnstileToken(turnstileToken);
       await loginWithGoogle();
     } catch (err: any) {
       setError(err.message || 'Google sign-in was canceled.');
@@ -88,6 +92,8 @@ export const AuthModal: React.FC = () => {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        <TurnstileWidget onToken={setTurnstileToken} />
 
         {/* Tab switcher */}
         <div className="flex p-1 mt-4 rounded-xl bg-[#0E0A14] light:bg-[#F3EEFC] border border-[#2C2340] light:border-[#E2D9F3]">

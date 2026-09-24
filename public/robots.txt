@@ -1,3 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /library
+Disallow: /creator-upload
+Disallow: /writer
+Disallow: /login
+Disallow: /signup
 Sitemap: https://manhwa24.xyz/sitemap.xml

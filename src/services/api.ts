@@ -139,8 +139,8 @@ export const api = {
   /**
    * Create community post
    */
-  async createCommunityPost(post: Partial<CommunityPost>): Promise<CommunityPost> {
-    return dbCreateCommunityPost(post);
+  async createCommunityPost(post: Partial<CommunityPost>, turnstileToken?: string): Promise<CommunityPost> {
+    return dbCreateCommunityPost(post, turnstileToken);
   },
 
   /**
@@ -160,7 +160,7 @@ export const api = {
   /**
    * Post a new comment
    */
-  async postComment(comment: Partial<UserComment>): Promise<UserComment> {
-    return dbPostComment(comment);
+  async postComment(comment: Partial<UserComment>, turnstileToken?: string): Promise<UserComment> {
+    return dbPostComment(comment, turnstileToken);
   },
 };
