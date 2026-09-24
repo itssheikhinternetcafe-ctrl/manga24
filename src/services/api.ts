@@ -89,7 +89,7 @@ export const api = {
    * Fetch featured carousel titles
    */
   async getFeaturedSeries(): Promise<Series[]> {
-    const { items } = await dbGetSeries({ limit: 10 }, false);
+    const { items } = await dbGetSeries({ limit: 10, includeAdult: true }, false);
     const settings = await dbGetSiteSettings();
     const explicitFeatured = items.filter((s) => s.featured || settings.featuredSeriesIds?.includes(s.id));
     return explicitFeatured.length > 0 ? explicitFeatured.slice(0, 6) : items.slice(0, 5);
@@ -99,7 +99,7 @@ export const api = {
    * Fetch trending series
    */
   async getTrendingSeries(): Promise<Series[]> {
-    const { items } = await dbGetSeries({ sortBy: 'popular', limit: 10 }, false);
+    const { items } = await dbGetSeries({ sortBy: 'popular', limit: 10, includeAdult: true }, false);
     return items;
   },
 
@@ -107,7 +107,7 @@ export const api = {
    * Fetch Most Followed New Series
    */
   async getMostFollowed(): Promise<Series[]> {
-    const { items } = await dbGetSeries({ sortBy: 'popular', limit: 10 }, false);
+    const { items } = await dbGetSeries({ sortBy: 'popular', limit: 10, includeAdult: true }, false);
     return items;
   },
 
@@ -115,7 +115,7 @@ export const api = {
    * Fetch Editor's Picks
    */
   async getEditorPicks(): Promise<Series[]> {
-    const { items } = await dbGetSeries({ limit: 10 }, false);
+    const { items } = await dbGetSeries({ limit: 10, includeAdult: true }, false);
     const picks = items.filter((s) => s.isEditorPick);
     return picks.length > 0 ? picks : items.slice(0, 6);
   },
@@ -125,7 +125,7 @@ export const api = {
    */
   async getLatestUpdates(type: 'all' | 'hot' | 'new' = 'all'): Promise<Series[]> {
     const sortBy = type === 'hot' ? 'popular' : 'latest';
-    const { items } = await dbGetSeries({ sortBy, limit: 18 }, false);
+    const { items } = await dbGetSeries({ sortBy, limit: 18, includeAdult: true }, false);
     return items;
   },
 

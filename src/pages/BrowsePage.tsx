@@ -23,13 +23,6 @@ import { useAppStore } from '../store/useAppStore';
 export const BrowsePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { library, toggleBookmark } = useAppStore();
-  const [showAdult, setShowAdult] = useState(() => {
-    try {
-      const stored = localStorage.getItem('manga24_show_adult');
-      return stored === null ? true : stored === 'true';
-    } catch { return true; }
-  });
-
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [selectedTypes, setSelectedTypes] = useState<SeriesType[]>(() => {
     const t = searchParams.get('type');
@@ -89,7 +82,8 @@ export const BrowsePage: React.FC = () => {
           statuses: selectedStatuses,
           demographics: selectedDemographics,
           contentRatings: selectedRatings,
-          includeAdult: showAdult,
+          // Content ratings affect the page-level age gate, not catalog visibility.
+          includeAdult: true,
           genres: selectedGenres,
           year: selectedYear,
           sortBy,
@@ -123,14 +117,7 @@ export const BrowsePage: React.FC = () => {
     selectedYear,
     sortBy,
     page,
-    showAdult,
   ]);
-
-  const toggleAdultVisibility = (enabled: boolean) => {
-    setShowAdult(enabled);
-    try { localStorage.setItem('manga24_show_adult', String(enabled)); } catch {}
-    setPage(1);
-  };
 
   const toggleType = (t: SeriesType) => {
     setPage(1);
@@ -385,11 +372,6 @@ export const BrowsePage: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <label className="flex items-center gap-2 text-xs font-semibold text-[#F5F1FF] light:text-[#1A1429]">
-                <input type="checkbox" checked={showAdult} onChange={(e) => toggleAdultVisibility(e.target.checked)} />
-                Show 18+ content
-              </label>
-
               {/* Content Rating */}
               <div>
                 <span className="block text-xs font-bold font-heading text-[#F5F1FF] light:text-[#1A1429] mb-2">
