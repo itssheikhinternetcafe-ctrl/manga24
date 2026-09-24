@@ -24,7 +24,10 @@ export const BrowsePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { library, toggleBookmark } = useAppStore();
   const [showAdult, setShowAdult] = useState(() => {
-    try { return localStorage.getItem('manga24_show_adult') === 'true'; } catch { return false; }
+    try {
+      const stored = localStorage.getItem('manga24_show_adult');
+      return stored === null ? true : stored === 'true';
+    } catch { return true; }
   });
 
   const [query, setQuery] = useState(searchParams.get('q') || '');

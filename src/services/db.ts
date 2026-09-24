@@ -146,7 +146,9 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
     filtered = filtered.filter((s) => filters.contentRatings!.includes(s.contentRating));
   }
 
-  if (!filters?.includeAdult) {
+  // Public listings include every rating by default. Only an explicit adult
+  // visibility choice should remove 18+ (including legacy "Mature") series.
+  if (filters?.includeAdult === false) {
     filtered = filtered.filter((s) => s.contentRating !== '18+');
   }
 
