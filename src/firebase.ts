@@ -74,8 +74,17 @@ export function getFirebaseConfigProblems(): string[] {
       '1234567890',
       'abcdef123456',
   ];
+  const requiredKeys = [
+    'VITE_FIREBASE_API_KEY',
+    'VITE_FIREBASE_AUTH_DOMAIN',
+    'VITE_FIREBASE_PROJECT_ID',
+    'VITE_FIREBASE_STORAGE_BUCKET',
+    'VITE_FIREBASE_MESSAGING_SENDER_ID',
+    'VITE_FIREBASE_APP_ID',
+  ];
 
   return Object.entries(firebaseEnv)
+    .filter(([name]) => requiredKeys.includes(name))
     .filter(([, value]) => !value || placeholders.some((placeholder) => value.includes(placeholder)))
     .map(([name]) => name);
 }
