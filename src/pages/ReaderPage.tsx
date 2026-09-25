@@ -95,7 +95,7 @@ export const ReaderPage: React.FC = () => {
       }
     }
     loadData();
-  }, [id, currentChNum, user, ageConfirmed]);
+  }, [id, currentChNum, ageConfirmed]);
 
   useEffect(() => {
     if (!series || !isAdultRating(series.contentRating)) return;

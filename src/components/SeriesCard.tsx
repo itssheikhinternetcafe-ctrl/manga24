@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Series } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { Star, Bookmark, Play, Clock, Flame } from 'lucide-react';
-import { AdultCoverPlaceholder, hasAgeConfirmation, isMatureRating } from './ContentSafety';
 
 interface SeriesCardProps {
   series: Series;
@@ -22,12 +21,10 @@ export const SeriesCard: React.FC<SeriesCardProps> = ({
   compact = false,
   className = '',
 }) => {
-  const { library, toggleBookmark, user } = useAppStore();
+  const { library, toggleBookmark } = useAppStore();
   const navigate = useNavigate();
 
   const isBookmarked = !!library[series.id]?.isBookmarked;
-  const canShowAdultCover = !isMatureRating(series.contentRating) || hasAgeConfirmation();
-
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -54,14 +51,12 @@ export const SeriesCard: React.FC<SeriesCardProps> = ({
     >
       {/* Cover container */}
       <Link to={`/series/${series.id}`} className="relative block aspect-[2/3] w-full overflow-hidden bg-[#0E0A14]">
-        {canShowAdultCover ? (
-          <img
-            src={series.coverUrl || series.coverImage || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80'}
-            alt={series.title}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : <AdultCoverPlaceholder title={series.title} />}
+        <img
+          src={series.coverUrl || series.coverImage || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80'}
+          alt={series.title}
+          loading="lazy"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
         {/* Top Badges */}
         <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">

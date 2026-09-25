@@ -93,7 +93,7 @@ export const SeriesDetailPage: React.FC = () => {
       }
     }
     loadSeriesData();
-  }, [id, user, ageConfirmed]);
+  }, [id, ageConfirmed]);
 
   useEffect(() => {
     if (!series) return;
