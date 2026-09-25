@@ -682,7 +682,10 @@ const StoryForm: React.FC<FormProps> = ({
   saving,
   saveStory,
   user,
-}) => (
+}) => {
+  const displayError = /^internal\s*\[\d+\]$/i.test(error.trim()) ? "" : error;
+
+  return (
   <div className="space-y-5">
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
@@ -710,9 +713,9 @@ const StoryForm: React.FC<FormProps> = ({
         </button>
       </div>
     </div>
-    {error && (
+    {displayError && (
       <p className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
-        {error}
+        {displayError}
       </p>
     )}
     <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
@@ -823,7 +826,8 @@ const StoryForm: React.FC<FormProps> = ({
       </section>
     </div>
   </div>
-);
+  );
+};
 
 const Field: React.FC<{
   label: string;
