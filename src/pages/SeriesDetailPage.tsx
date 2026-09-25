@@ -38,8 +38,6 @@ export const SeriesDetailPage: React.FC = () => {
     setSeriesRating,
     readingHistory,
     showToast,
-    user,
-    updateProfile,
   } = useAppStore();
 
   const [series, setSeries] = useState<Series | null>(null);
@@ -73,7 +71,7 @@ export const SeriesDetailPage: React.FC = () => {
         const data = await api.getSeriesById(id);
         if (data) {
           setSeries(data);
-          const allowed = !isAdultRating(data.contentRating) || hasAgeConfirmation(user);
+          const allowed = !isAdultRating(data.contentRating) || hasAgeConfirmation();
           setAgeConfirmed(allowed);
           if (!allowed) return;
           const chs = await api.getChapters(data.id);
@@ -156,7 +154,7 @@ export const SeriesDetailPage: React.FC = () => {
       <AgeGate
         onLeave={() => navigate('/browse')}
         onConfirm={() => {
-          rememberAgeConfirmation(user, updateProfile);
+          rememberAgeConfirmation();
           setAgeConfirmed(true);
         }}
       />

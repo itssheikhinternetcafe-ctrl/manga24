@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Series, FilterOptions, SeriesType, PublicationStatus, Demographic, ContentRating, ALL_GENRES } from '../types';
 import { SeriesCard } from '../components/SeriesCard';
@@ -19,9 +19,11 @@ import {
   Check,
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
+import { AgeGate, hasAgeConfirmation, isMatureCategory, rememberAgeConfirmation } from '../components/ContentSafety';
 
 export const BrowsePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { library, toggleBookmark } = useAppStore();
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [selectedTypes, setSelectedTypes] = useState<SeriesType[]>(() => {
@@ -45,11 +47,22 @@ export const BrowsePage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [ageGateOpen, setAgeGateOpen] = useState(false);
 
   const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const matureFilterSelected =
+      selectedRatings.some((rating) => isMatureCategory(rating)) ||
+      selectedGenres.some((genre) => isMatureCategory(genre));
+
+    if (matureFilterSelected && !hasAgeConfirmation()) {
+      setAgeGateOpen(true);
+    }
+  }, [selectedRatings, selectedGenres]);
 
   // Sync URL params when searchParams change externally (e.g. from navbar)
   useEffect(() => {
@@ -164,6 +177,15 @@ export const BrowsePage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6">
+      {ageGateOpen && (
+        <AgeGate
+          onLeave={() => navigate('/')}
+          onConfirm={() => {
+            rememberAgeConfirmation();
+            setAgeGateOpen(false);
+          }}
+        />
+      )}
       {/* Title & Stats */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>

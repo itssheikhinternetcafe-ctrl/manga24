@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Series } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { Star, Bookmark, Play, Clock, Flame } from 'lucide-react';
-import { AdultCoverPlaceholder, hasAgeConfirmation } from './ContentSafety';
+import { AdultCoverPlaceholder, hasAgeConfirmation, isMatureRating } from './ContentSafety';
 
 interface SeriesCardProps {
   series: Series;
@@ -26,7 +26,7 @@ export const SeriesCard: React.FC<SeriesCardProps> = ({
   const navigate = useNavigate();
 
   const isBookmarked = !!library[series.id]?.isBookmarked;
-  const canShowAdultCover = series.contentRating !== '18+' || hasAgeConfirmation(user);
+  const canShowAdultCover = !isMatureRating(series.contentRating) || hasAgeConfirmation();
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.preventDefault();

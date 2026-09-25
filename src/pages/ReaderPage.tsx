@@ -42,8 +42,6 @@ export const ReaderPage: React.FC = () => {
     setDarkReaderMode,
     updateReadingProgress,
     showToast,
-    user,
-    updateProfile,
   } = useAppStore();
 
   const [series, setSeries] = useState<Series | null>(null);
@@ -76,7 +74,7 @@ export const ReaderPage: React.FC = () => {
       try {
         const s = await api.getSeriesById(id);
         setSeries(s);
-        const allowed = !isAdultRating(s?.contentRating) || hasAgeConfirmation(user);
+        const allowed = !isAdultRating(s?.contentRating) || hasAgeConfirmation();
         setAgeConfirmed(allowed);
         if (!s || !allowed) return;
         const chList = await api.getChapters(id);
@@ -233,7 +231,7 @@ export const ReaderPage: React.FC = () => {
       <AgeGate
         onLeave={() => navigate(`/series/${id}`)}
         onConfirm={() => {
-          rememberAgeConfirmation(user, updateProfile);
+          rememberAgeConfirmation();
           setAgeConfirmed(true);
         }}
       />

@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './store/useAppStore';
 import { Layout } from './components/Layout';
-import { HomePage } from './pages/HomePage';
+import { EntryLandingPage } from './pages/EntryLandingPage';
 import { BrowsePage } from './pages/BrowsePage';
 import { SeriesDetailPage } from './pages/SeriesDetailPage';
 import { ReaderPage } from './pages/ReaderPage';
@@ -21,7 +21,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
+            <Route index element={<EntryLandingPage />} />
             <Route path="browse" element={<BrowsePage />} />
             <Route path="series/:id" element={<SeriesDetailPage />} />
             <Route path="series/:id/chapter/:chapterNumber" element={<ReaderPage />} />
