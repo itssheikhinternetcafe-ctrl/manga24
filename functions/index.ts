@@ -46,7 +46,11 @@ async function enforceRateLimit(request: any, action: WriteAction) {
   });
 }
 
-export const protectedWrite = onCall({ enforceAppCheck: true, secrets: [turnstileSecret] }, async (request) => {
+export const protectedWrite = onCall({
+  enforceAppCheck: true,
+  secrets: [turnstileSecret],
+  cors: ['https://manhwa24.xyz', 'http://127.0.0.1:3003', 'http://localhost:3003'],
+}, async (request) => {
   const { action, data, turnstileToken } = request.data || {};
   if (!limits[action as WriteAction] || !data || typeof data !== 'object') throw new HttpsError('invalid-argument', 'Invalid write request.');
   if (action !== 'report' && !request.auth?.uid) throw new HttpsError('unauthenticated', 'Sign in is required.');

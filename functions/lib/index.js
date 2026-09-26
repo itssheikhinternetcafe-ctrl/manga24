@@ -45,7 +45,11 @@ async function enforceRateLimit(request, action) {
         transaction.set(ref, { count: count + 1, resetAt: resetAt > now ? resetAt : now + config.windowMs, updatedAt: firestore_1.FieldValue.serverTimestamp() });
     });
 }
-exports.protectedWrite = (0, https_1.onCall)({ enforceAppCheck: true, secrets: [turnstileSecret] }, async (request) => {
+exports.protectedWrite = (0, https_1.onCall)({
+    enforceAppCheck: true,
+    secrets: [turnstileSecret],
+    cors: ['https://manhwa24.xyz', 'http://127.0.0.1:3003', 'http://localhost:3003'],
+}, async (request) => {
     const { action, data, turnstileToken } = request.data || {};
     if (!limits[action] || !data || typeof data !== 'object')
         throw new https_1.HttpsError('invalid-argument', 'Invalid write request.');
