@@ -19,8 +19,8 @@ service cloud.firestore {
     function isCreator() {
       return isAuthenticated() && (
         isAdmin() ||
-        request.auth.token.role == 'creator' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'creator'
+        request.auth.token.get('role', '') == 'creator' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'creator'
       );
     }
 
@@ -29,6 +29,7 @@ service cloud.firestore {
       allow read: if isAdmin() || resource.data.get('moderationStatus', 'active') == 'active';
       allow create: if isAdmin() || (
         isAuthenticated() &&
+        isCreator() &&
         request.resource.data.authorId == request.auth.uid &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         request.resource.data.get('moderationStatus', 'active') == 'active' &&
@@ -36,7 +37,7 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) != true &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('creatorStatus', 'active') == 'active' &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('strikes', 0) < 3 &&
-        request.resource.data.createdAt == request.time &&
+        request.resource.data.createdAt is string &&
         (!request.resource.data.keys().hasAny(['featured']) || request.resource.data.featured == false) &&
         (!request.resource.data.keys().hasAny(['isFeatured']) || request.resource.data.isFeatured == false) &&
         (!request.resource.data.keys().hasAny(['isTrending']) || request.resource.data.isTrending == false) &&
@@ -131,7 +132,12 @@ service cloud.firestore {
     // Comments collection
     match /comments/{commentId} {
       allow read: if true;
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.createdAt is string &&
+        request.resource.data.likes == 0 &&
+        request.resource.data.dislikes == 0 &&
+        request.resource.data.get('isDeleted', false) == false;
       allow update: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
       allow delete: if isAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
     }
@@ -146,7 +152,12 @@ service cloud.firestore {
     // Community forum posts
     match /posts/{postId} {
       allow read: if true;
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.createdAt is string &&
+        request.resource.data.get('pinned', false) == false &&
+        request.resource.data.get('likes', 0) == 0 &&
+        request.resource.data.get('commentCount', 0) == 0;
       allow update: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
       allow delete: if isAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
     }
@@ -154,7 +165,15 @@ service cloud.firestore {
     // Reports may be submitted by guests, but only admins can review them.
     match /reports/{reportId} {
       allow create: if request.resource.data.keys().hasAll(['seriesId', 'reason', 'createdAt', 'status']) &&
-        request.resource.data.reason in ['Copyright/stolen', 'Minor/child content', 'Non-consensual/real person', 'Wrong content rating', 'Other'];
+        request.resource.data.keys().hasOnly(['id', 'reporterId', 'seriesId', 'chapterId', 'reason', 'message', 'createdAt', 'status']) &&
+        request.resource.data.reason in ['Copyright/stolen', 'Minor/child content', 'Non-consensual/real person', 'Wrong content rating', 'Other'] &&
+        request.resource.data.createdAt is string &&
+        request.resource.data.status == 'open' &&
+        request.resource.data.seriesId is string &&
+        request.resource.data.message is string &&
+        (!request.resource.data.keys().hasAny(['chapterId']) || request.resource.data.chapterId is string) &&
+        (!request.resource.data.keys().hasAny(['reporterId']) ||
+          (isAuthenticated() && request.resource.data.reporterId == request.auth.uid));
       allow read, update, delete: if isAdmin();
     }
 

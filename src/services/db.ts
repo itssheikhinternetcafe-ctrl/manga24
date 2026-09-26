@@ -24,7 +24,7 @@ import {
   Timestamp,
   serverTimestamp,
 } from 'firebase/firestore';
-import { db, getProtectedWrite, isFirebaseConfigured } from '../firebase';
+import { auth, db, isFirebaseConfigured } from '../firebase';
 import {
   Series,
   Chapter,
@@ -275,11 +275,9 @@ export async function dbCreateSeries(seriesData: Partial<Series>, turnstileToken
           createdAt: _createdAt,
           ...writerSeries
         } = newSeries;
-        const result = await getProtectedWrite()({ action: 'series', data: { ...writerSeries, createdAt: now }, turnstileToken });
-        Object.assign(newSeries, result.data as Partial<Series>);
+        await setDoc(doc(db, 'series', id), { ...writerSeries, createdAt: now });
       } else {
-        const result = await getProtectedWrite()({ action: 'series', data: newSeries, turnstileToken });
-        Object.assign(newSeries, result.data as Partial<Series>);
+        await setDoc(doc(db, 'series', id), newSeries);
       }
     } catch (err) {
       console.error('[Firestore] Save error:', err);
@@ -297,8 +295,7 @@ export async function dbCreateSeries(seriesData: Partial<Series>, turnstileToken
 export async function dbCreateReport(data: { reporterId?: string; seriesId: string; chapterId?: string; reason: ReportReason; message: string }, turnstileToken?: string): Promise<ContentReport> {
   const report: ContentReport = { ...data, id: `report-${Date.now()}`, createdAt: new Date().toISOString(), status: 'open' };
   if (isFirebaseConfigured() && db) {
-    const result = await getProtectedWrite()({ action: 'report', data: report, turnstileToken });
-    Object.assign(report, result.data as ContentReport);
+    await setDoc(doc(db, 'reports', report.id), report);
   }
   const reports = getLocal<ContentReport[]>(STORAGE_KEYS.REPORTS, []);
   setLocal(STORAGE_KEYS.REPORTS, [report, ...reports]);
@@ -698,7 +695,7 @@ export async function dbPostComment(commentData: Partial<UserComment>, turnstile
     seriesId: commentData.seriesId,
     chapterId: commentData.chapterId,
     postId: commentData.postId,
-    authorId: commentData.authorId || 'usr-anon',
+    authorId: auth?.currentUser?.uid,
     authorName: commentData.authorName || 'Reader',
     authorAvatar: commentData.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&auto=format&fit=crop&q=80',
     authorBadge: commentData.authorBadge || 'Reader',
@@ -713,8 +710,7 @@ export async function dbPostComment(commentData: Partial<UserComment>, turnstile
 
   if (isFirebaseConfigured() && db) {
     try {
-      const result = await getProtectedWrite()({ action: 'comment', data: newComment, turnstileToken });
-      Object.assign(newComment, result.data as UserComment);
+      await setDoc(doc(db, 'comments', id), newComment);
     } catch (err) {
       console.error('[Firestore] Post comment error:', err);
       throw err;
@@ -777,7 +773,7 @@ export async function dbCreateCommunityPost(post: Partial<CommunityPost>, turnst
     category: post.category || 'General',
     content: post.content || '',
     excerpt: (post.content || '').slice(0, 150),
-    authorId: post.authorId || 'usr-anon',
+    authorId: auth?.currentUser?.uid,
     authorName: post.authorName || 'Community Member',
     authorAvatar: post.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&auto=format&fit=crop&q=80',
     authorBadge: post.authorBadge || 'Reader',
@@ -790,8 +786,7 @@ export async function dbCreateCommunityPost(post: Partial<CommunityPost>, turnst
 
   if (isFirebaseConfigured() && db) {
     try {
-      const result = await getProtectedWrite()({ action: 'communityPost', data: newPost, turnstileToken });
-      Object.assign(newPost, result.data as CommunityPost);
+      await setDoc(doc(db, 'posts', id), newPost);
     } catch (err) {
       console.error('[Firestore] Create post error:', err);
       throw err;
