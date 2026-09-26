@@ -16,27 +16,22 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.token.admin == true;
     }
 
-    function isCreator() {
+    function ownsContent(data) {
       return isAuthenticated() && (
-        isAdmin() ||
-        request.auth.token.get('role', '') == 'creator' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'creator'
+        data.get('authorId', '') == request.auth.uid ||
+        data.get('creatorId', '') == request.auth.uid
       );
     }
 
-    // Series collection: active stories are public; authors can save drafts privately in the UI.
+    // Published stories are public; authors can save drafts privately in the UI.
     match /series/{seriesId} {
-      allow read: if isAdmin() || resource.data.get('moderationStatus', 'active') == 'active';
+      allow read: if isAdmin() || (
+        resource.data.get('isDraft', false) == false &&
+        resource.data.get('moderationStatus', 'active') == 'active'
+      );
       allow create: if isAdmin() || (
-        isAuthenticated() &&
-        isCreator() &&
-        request.resource.data.authorId == request.auth.uid &&
+        ownsContent(request.resource.data) &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
-        request.resource.data.get('moderationStatus', 'active') == 'active' &&
-        request.resource.data.get('flaggedForReview', false) == false &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) != true &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('creatorStatus', 'active') == 'active' &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('strikes', 0) < 3 &&
         request.resource.data.createdAt is string &&
         (!request.resource.data.keys().hasAny(['featured']) || request.resource.data.featured == false) &&
         (!request.resource.data.keys().hasAny(['isFeatured']) || request.resource.data.isFeatured == false) &&
@@ -48,14 +43,13 @@ service cloud.firestore {
         (!request.resource.data.keys().hasAny(['ratingCount']) || request.resource.data.ratingCount == 0)
       );
       allow update: if isAdmin() || (
-        isAuthenticated() &&
-        resource.data.authorId == request.auth.uid &&
-        request.resource.data.authorId == request.auth.uid &&
+        ownsContent(resource.data) &&
+        ownsContent(request.resource.data) &&
         request.resource.data.contentRating in ['safe', '16+', '18+'] &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'featured', 'isFeatured', 'isTrending', 'isEditorPick',
           'views', 'followersCount', 'rating', 'ratingCount', 'createdAt', 'approvedAdultChapters', 'strikes', 'isBanned', 'role',
-          'contentRating', 'moderationStatus', 'flaggedForReview', 'moderationUpdatedAt', 'moderationUpdatedBy', 'coverAssetId'
+          'moderationStatus', 'flaggedForReview', 'moderationUpdatedAt', 'moderationUpdatedBy', 'coverAssetId'
         ])
       ) || (
         resource.data.get('moderationStatus', 'active') == 'active' &&
@@ -78,16 +72,16 @@ service cloud.firestore {
     // Chapters are published directly by their authors.
     match /chapters/{chapterId} {
       allow read: if isAdmin() ||
-        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('moderationStatus', 'active') == 'active';
-      allow create: if (
-        isAuthenticated() &&
-        request.resource.data.authorId == request.auth.uid &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('creatorStatus', 'active') == 'active'
-      );
+        (resource.data.get('isDraft', false) == false &&
+        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('isDraft', false) == false &&
+        get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data.get('moderationStatus', 'active') == 'active');
+      allow create: if ownsContent(request.resource.data) &&
+        ownsContent(get(/databases/$(database)/documents/series/$(request.resource.data.seriesId)).data);
       allow update: if isAdmin() || (
-        isAuthenticated() &&
-        resource.data.authorId == request.auth.uid &&
-        request.resource.data.authorId == request.auth.uid &&
+        ownsContent(resource.data) &&
+        ownsContent(request.resource.data) &&
+        request.resource.data.seriesId == resource.data.seriesId &&
+        ownsContent(get(/databases/$(database)/documents/series/$(resource.data.seriesId)).data) &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['flagged'])
       );
       allow delete: if isAdmin();

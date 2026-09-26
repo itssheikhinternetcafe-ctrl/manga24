@@ -99,7 +99,10 @@ export async function dbGetSeries(filters?: Partial<FilterOptions>, includeDraft
   if (isFirebaseConfigured() && db) {
     try {
       const seriesCol = collection(db, 'series');
-      const snapshot = await getDocs(query(seriesCol));
+      const seriesQuery = includeDrafts
+        ? query(seriesCol)
+        : query(seriesCol, where('isDraft', '==', false));
+      const snapshot = await getDocs(seriesQuery);
       allSeries = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Series));
     } catch (err) {
       console.warn('[Firestore] Error fetching series, falling back to local store:', err);
