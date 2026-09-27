@@ -7,6 +7,7 @@ import { ToastContainer } from './ToastContainer';
 import { AuthModal } from './AuthModal';
 import AdBanner from './AdBanner';
 import PopunderAd from './PopunderAd';
+import { hasEnteredSite } from '../pages/EntryLandingPage';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
@@ -20,6 +21,9 @@ export const Layout: React.FC = () => {
     location.pathname.toLowerCase().includes(path)
   );
 
+  // Don't show ads until the user has clicked past the entry/welcome page
+  const showAds = !isLegalPage && hasEnteredSite();
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0E0A14] text-[#F5F1FF] light:bg-[#FAF7FF] light:text-[#1A1429] transition-colors duration-200 selection:bg-[#FF4D6D] selection:text-white">
       {!isReaderPage && <Navbar />}
@@ -28,8 +32,8 @@ export const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      {!isLegalPage && <AdBanner zoneId="6041584" />}
-      {!isLegalPage && <PopunderAd />}
+      {showAds && <AdBanner zoneId="6041584" />}
+      {showAds && <PopunderAd />}
 
       {!isReaderPage && <Footer />}
       {!isReaderPage && <MobileBottomNav />}
