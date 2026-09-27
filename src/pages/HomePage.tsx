@@ -9,6 +9,7 @@ import { LatestUpdatesGrid } from '../components/LatestUpdatesGrid';
 import { SidebarWidgets } from '../components/SidebarWidgets';
 import { UserCollectionsSlider } from '../components/UserCollectionsSlider';
 import { Flame, Star, Sparkles, TrendingUp, Layers } from 'lucide-react';
+import AdBanner from '../components/AdBanner';
 
 const quickFilters = [
   { label: '🔥 All Series', path: '/browse' },
@@ -76,6 +77,11 @@ export const HomePage: React.FC = () => {
         ))}
       </div>
 
+      {/* Mobile Banner Ad */}
+      <div className="sm:hidden my-4">
+        <AdBanner zoneId="6041832" />
+      </div>
+
       {/* Trending Now Slider (Ranked #1 - #10) */}
       <HorizontalSlider
         title="Trending Right Now"
@@ -94,6 +100,9 @@ export const HomePage: React.FC = () => {
           </div>
         ))}
       </HorizontalSlider>
+
+      {/* Native Ad Widget */}
+      <AdBanner zoneId="6041804" className="eas6a97888e20" />
 
       {/* Most Followed Series Slider */}
       <HorizontalSlider
