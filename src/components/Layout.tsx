@@ -6,6 +6,7 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { ToastContainer } from './ToastContainer';
 import { AuthModal } from './AuthModal';
 import AdBanner from './AdBanner';
+import PopunderAd from './PopunderAd';
 
 export const Layout: React.FC = () => {
   const location = useLocation();
@@ -28,6 +29,7 @@ export const Layout: React.FC = () => {
       </main>
 
       {!isLegalPage && <AdBanner />}
+      {!isLegalPage && <PopunderAd />}
 
       {!isReaderPage && <Footer />}
       {!isReaderPage && <MobileBottomNav />}
