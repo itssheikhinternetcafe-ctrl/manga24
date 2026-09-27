@@ -14,7 +14,7 @@ const landingGenres = [
   { label: 'Sci-Fi', path: '/browse?genre=Sci-Fi' },
 ];
 
-function hasEnteredSite(): boolean {
+export function hasEnteredSite(): boolean {
   try {
     return sessionStorage.getItem(ENTRY_SESSION_KEY) === 'true';
   } catch {

@@ -28,7 +28,7 @@ export const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      {!isLegalPage && <AdBanner />}
+      {!isLegalPage && <AdBanner zoneId="6041584" />}
       {!isLegalPage && <PopunderAd />}
 
       {!isReaderPage && <Footer />}

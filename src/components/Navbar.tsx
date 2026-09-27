@@ -4,6 +4,8 @@ import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
 import { Series } from '../types';
 import { NotificationsDropdown } from './NotificationsDropdown';
+import AdBanner from './AdBanner';
+import { hasEnteredSite } from '../pages/EntryLandingPage';
 import {
   Search,
   Compass,
@@ -101,6 +103,7 @@ export const Navbar: React.FC = () => {
   };
 
   return (
+    <>
     <header className="sticky top-0 z-40 w-full glass-nav transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo & Wordmark */}
@@ -482,5 +485,7 @@ export const Navbar: React.FC = () => {
         </div>
       )}
     </header>
+    {hasEnteredSite() && <AdBanner zoneId="6041790" />}
+    </>
   );
 };

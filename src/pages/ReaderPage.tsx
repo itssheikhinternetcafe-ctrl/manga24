@@ -5,6 +5,7 @@ import { Series, Chapter, ChapterPage } from '../types';
 import { useAppStore } from '../store/useAppStore';
 import { AgeGate, hasAgeConfirmation, isAdultRating, rememberAgeConfirmation } from '../components/ContentSafety';
 import { ReportButton } from '../components/ReportButton';
+import AdBanner from '../components/AdBanner';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -253,6 +254,7 @@ export const ReaderPage: React.FC = () => {
 
   return (
     <div className={`min-h-screen ${bgClass} transition-colors duration-200 select-none relative`}>
+      <AdBanner zoneId="6041820" />
       {/* Top Thin Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-transparent z-50 pointer-events-none">
         <div
@@ -554,15 +556,19 @@ export const ReaderPage: React.FC = () => {
               transformOrigin: 'top center',
             }}
           >
-            {pages.map((p) => (
-              <ComicPanelRenderer
-                key={p.pageNumber}
-                page={p}
-                seriesTitle={series?.title || 'Manga'}
-                fitMode={fitMode}
-                continuous
-                eager={pages.indexOf(p) < 3}
-              />
+            {pages.map((p, idx) => (
+              <React.Fragment key={p.pageNumber}>
+                <ComicPanelRenderer
+                  page={p}
+                  seriesTitle={series?.title || 'Manga'}
+                  fitMode={fitMode}
+                  continuous
+                  eager={pages.indexOf(p) < 3}
+                />
+                {(idx + 1) % 4 === 0 && idx !== pages.length - 1 && (
+                  <AdBanner zoneId="6041778" />
+                )}
+              </React.Fragment>
             ))}
           </div>
         ) : (
@@ -585,6 +591,9 @@ export const ReaderPage: React.FC = () => {
             {/* Paged mode bottom page indicator */}
             <div className="mt-4 px-4 py-1.5 rounded-full bg-[#171122]/90 light:bg-white/90 border border-[#2C2340] text-xs font-mono-meta font-bold shadow-md">
               Page {currentPageIndex + 1} of {pages.length}
+            </div>
+            <div className="mt-4">
+              <AdBanner zoneId="6041778" />
             </div>
           </div>
         )}

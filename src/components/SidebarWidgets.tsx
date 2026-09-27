@@ -11,6 +11,7 @@ import {
   Flame,
   ArrowRight,
 } from 'lucide-react';
+import AdBanner from './AdBanner';
 
 export const SidebarWidgets: React.FC = () => {
   const [tab, setTab] = useState<'completed' | 'recent'>('completed');
@@ -46,6 +47,9 @@ export const SidebarWidgets: React.FC = () => {
 
   return (
     <aside className="space-y-6">
+      {/* Ad Banner */}
+      <AdBanner zoneId="6041796" />
+
       {/* Join Discord Banner */}
       <div className="p-4 rounded-2xl bg-gradient-to-br from-[#5865F2]/20 via-[#171122] to-[#1F1830] border border-[#5865F2]/30 light:from-[#5865F2]/10 light:to-white light:border-[#5865F2]/20 relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
