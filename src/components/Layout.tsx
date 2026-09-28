@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
@@ -23,6 +23,17 @@ export const Layout: React.FC = () => {
 
   // Don't show ads until the user has clicked past the entry/welcome page
   const showAds = !isLegalPage && hasEnteredSite();
+
+  // If ads were shown earlier and now must be hidden (landing/legal page),
+  // reload once so every injected ad script, iframe and popunder listener is wiped out.
+  const adsWereShown = useRef(false);
+  useEffect(() => {
+    if (showAds) {
+      adsWereShown.current = true;
+    } else if (adsWereShown.current) {
+      window.location.reload();
+    }
+  }, [showAds, location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0E0A14] text-[#F5F1FF] light:bg-[#FAF7FF] light:text-[#1A1429] transition-colors duration-200 selection:bg-[#FF4D6D] selection:text-white">
