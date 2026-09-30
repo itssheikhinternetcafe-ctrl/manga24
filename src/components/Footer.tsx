@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, ShieldCheck, Github, MessageSquare } from 'lucide-react';
 import { SITE_EMAIL, SITE_NAME } from '../config';
 import AdBanner from './AdBanner';
+import { hasEnteredSite } from '../pages/EntryLandingPage';
 
 export const Footer: React.FC = () => {
   return (
@@ -154,17 +155,21 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Ad Banner */}
-        <div className="pt-8 flex justify-center">
-          <AdBanner zoneId="6041820" />
-        </div>
+        {/* Ad Banner (only after Enter Site) */}
+        {hasEnteredSite() && (
+          <div className="pt-8 flex justify-center">
+            <AdBanner zoneId="6041820" />
+          </div>
+        )}
 
-        {/* ExoClick Referral Banner */}
-        <div className="pt-4 flex justify-center">
-          <a href="https://www.exoclick.com/signup/?login=Manhwa24" target="_blank" rel="noopener noreferrer">
-            <img src="https://www.exoclick.com/banners/728x90.gif" alt="ExoClick - Advertise with us" />
-          </a>
-        </div>
+        {/* ExoClick Referral Banner (only after Enter Site) */}
+        {hasEnteredSite() && (
+          <div className="pt-4 flex justify-center">
+            <a href="https://www.exoclick.com/signup/?login=Manhwa24" target="_blank" rel="noopener noreferrer">
+              <img src="https://www.exoclick.com/banners/728x90.gif" alt="ExoClick - Advertise with us" />
+            </a>
+          </div>
+        )}
 
         {/* Bottom copyright & disclaimer */}
         <div className="pt-8 mt-8 border-t border-[#2C2340]/60 light:border-[#E2D9F3] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
