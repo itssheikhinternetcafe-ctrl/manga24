@@ -22,7 +22,9 @@ import {
   Shield,
   Upload,
   BookOpen,
+  Send,
 } from 'lucide-react';
+import { TELEGRAM_URL } from '../constants';
 
 export const Navbar: React.FC = () => {
   const {
@@ -270,6 +272,18 @@ export const Navbar: React.FC = () => {
 
         {/* Right Nav Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <a
+            href={TELEGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#229ED9] px-2 py-2 sm:px-2.5 text-xs font-semibold text-white transition hover:bg-[#1C8CC2]"
+            aria-label="Telegram"
+            title="Join our Telegram"
+          >
+            <Send className="w-4 h-4" />
+            <span className="hidden sm:inline">Telegram</span>
+          </a>
+
           {/* Creator Upload button */}
           <Link
             to="/creator-upload"

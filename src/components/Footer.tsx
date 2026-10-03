@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShieldCheck, Github, MessageSquare } from 'lucide-react';
+import { Heart, ShieldCheck, Github, MessageSquare, Send } from 'lucide-react';
 import { SITE_EMAIL, SITE_NAME } from '../config';
+import { TELEGRAM_URL } from '../constants';
 import AdBanner from './AdBanner';
 import { hasEnteredSite } from '../pages/EntryLandingPage';
 
@@ -177,11 +178,22 @@ export const Footer: React.FC = () => {
             © {SITE_NAME}. Built for manga readers worldwide.
           </p>
 
-          <p className="flex items-center gap-1.5 text-center sm:text-right">
-            <span>Crafted with</span>
-            <Heart className="w-3.5 h-3.5 text-[#FF4D6D] fill-[#FF4D6D]" />
-            <span>for manga & webtoon culture</span>
-          </p>
+          <div className="flex flex-col items-center sm:items-end gap-3">
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#229ED9] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1C8CC2]"
+            >
+              <Send className="w-4 h-4" />
+              <span>Join our Telegram</span>
+            </a>
+            <p className="flex items-center gap-1.5 text-center sm:text-right">
+              <span>Crafted with</span>
+              <Heart className="w-3.5 h-3.5 text-[#FF4D6D] fill-[#FF4D6D]" />
+              <span>for manga & webtoon culture</span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
