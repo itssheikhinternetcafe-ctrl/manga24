@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="pt-2 flex items-center gap-3">
               <a
-                href="https://discord.gg"
+                href="https://discord.gg/VtvzvSkzZ"
                 target="_blank"
                 rel="noreferrer"
                 className="p-2 rounded-xl bg-[#171122] hover:bg-[#1F1830] light:bg-white light:hover:bg-[#E2D9F3] text-[#A79FC0] hover:text-[#5865F2] border border-[#2C2340] light:border-[#E2D9F3] transition"

@@ -72,7 +72,7 @@ export const SidebarWidgets: React.FC = () => {
           Chat chapter spoilers, creator releases, and series recommendations 24/7.
         </p>
         <a
-          href="https://discord.gg"
+          href="https://discord.gg/VtvzvSkzZ"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full py-2 px-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs font-bold font-heading flex items-center justify-center gap-1.5 shadow-md transition"
